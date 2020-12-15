@@ -11,3 +11,7 @@ Main Features:
 * Use of GDAL for efficient geodata processing
 
 This software is currently in an alpha release, and will change rapidly.
+
+## Contributing
+
+We welcome pull requests for consideration. This repository uses pre-commit hooks to validate contributions for style. Please [install and enable `pre-commit`](https://pre-commit.com/#quick-start).
