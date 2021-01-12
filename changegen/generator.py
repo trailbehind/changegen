@@ -284,6 +284,12 @@ def _modify_existing_way(way_geom, way_id, nodes, tags, intersection_db):
     ]
 
     for n in add_nodes:
+
+        # ensure at least 2 nodes in linestring
+        if len(way_geom_pts) < 2:
+            logging.warning("Malformed linestring found.")
+            continue
+
         _g = sg.LineString(way_geom_pts)
         idx = _get_point_insertion_index(_g, sg.Point(n.lon, n.lat))
         ip_x, ip_y = way_geom_pts[idx]
@@ -374,7 +380,11 @@ def _generate_ways_and_nodes(
     ]
 
     for n in add_nodes:
-        _tmp_ls = sg.LineString([(_n.lon, _n.lat) for _n in nodes])
+        ls_points = [(_n.lon, _n.lat) for _n in nodes]
+        if len(ls_points) < 2:
+            logging.warning("Malformed linestring found.")
+            continue  # skip linestrings that are not linestrings
+        _tmp_ls = sg.LineString(ls_points)
         idx = _get_point_insertion_index(_tmp_ls, sg.Point(n.lon, n.lat))
         ip_x, ip_y = list(_tmp_ls.coords)[idx]
         # there's a special case here where the intersection point already exists
