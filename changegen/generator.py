@@ -37,7 +37,7 @@ def _get_way_node_map(osm, way_idlist):
     class _wayFilter(osmium.SimpleHandler):
         def __init__(self, ids):
             super(_wayFilter, self).__init__()
-            self.ids = ids
+            self.ids = set(ids)
             self.node_map = {}
 
         def way(self, w):
