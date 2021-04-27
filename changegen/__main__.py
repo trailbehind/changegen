@@ -99,6 +99,13 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     show_default=True,
 )
 @click.option(
+    "--no_collisions",
+    help="Stop execution if the chosen ID offset "
+    "will cause collisions with existing OSM ids."
+    " (requires osmium).",
+    is_flag=True,
+)
+@click.option(
     "--self",
     "-si",
     help=(
@@ -138,9 +145,12 @@ def main(*args: tuple, **kwargs: dict):
     try:
         ids = _get_max_ids(kwargs["osmsrc"])
         if any([kwargs["id_offset"] < id for id in ids.values()]):
-            logging.warning(
-                f"Chosen ID offset {kwargs['id_offset']} may cause collisions with existing OSM IDs (max IDs: {ids})."
-            )
+            _log_text = f"Chosen ID offset {kwargs['id_offset']} may cause collisions with existing OSM IDs (max IDs: {ids})."
+            if kwargs["no_collisions"]:
+                logging.fatal(_log_text)
+                sys.exit(-1)
+            else:
+                logging.warning(_log_text)
     except subprocess.CalledProcessError:
         logging.error("Error checking existing OSM max ids.")
 
