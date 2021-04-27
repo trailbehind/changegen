@@ -32,7 +32,7 @@ def _get_max_ids(source_extract):
         )
     except subprocess.CalledProcessError as e:
         logging.warning(
-            "osmosis not found; unable to determine max OSM id in source extract"
+            "osmium not found; unable to determine max OSM id in source extract"
         )
         raise e
 
@@ -45,7 +45,7 @@ def _get_max_ids(source_extract):
             stderr=subprocess.PIPE,
         )
         if proc.stderr.read():
-            raise subprocess.CalledProcessError(-1, "osmosis", "Error in osmosis.")
+            raise subprocess.CalledProcessError(-1, "osmium", "Error in osmium.")
         ids[idtype.split(".")[-1]] = int(proc.stdout.read().strip())
     return ids
 
