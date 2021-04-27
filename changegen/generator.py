@@ -86,6 +86,12 @@ def _nodes_for_intersections(ilayer, idgen):
     return nodes
 
 
+def _get_deleted_way_ids(table, db):
+    """Returns OSM ids present in osm_id column of table as list."""
+    deletions_iter = db.get_layer_iter(table)
+    return [_f.GetFieldAsString(_f.GetFieldIndex("osm_id")) for _f in deletions_iter]
+
+
 def _generate_intersection_db(layer, others, db, idgen, self=False):
     """
     Returns an rtree spatial index containing Nodes
@@ -418,6 +424,7 @@ def _generate_ways_and_nodes(
 def generate_changes(
     table,
     others,
+    deletions,
     dbname,
     dbport,
     dbuser,
@@ -519,11 +526,16 @@ def generate_changes(
     # Write all modified ways with intersections
     # Because we have to re-generate nodes for all points
     # within the intersecting linestrings, we write
-    # those as new nodes.
-    logging.info(f"Retrieving existing Node IDs for modified ways (file: {osmsrc})")
+    # those as new nodes. We also get deletion ways +
+    # their corresponding nodes here too, to save time.
+    logging.info(f"Retrieving deletion nodes for tables: {deletions}")
+    deletion_way_ids = [_get_deleted_way_ids(table, db_reader) for table in deletions]
+    logging.info(
+        f"Retrieving existing Node IDs for modified and deleted ways (file: {osmsrc})"
+    )
     modified_ways = []
     way_node_map = _get_way_node_map(
-        osmsrc, list(chain.from_iterable(intersecting_idlists))
+        osmsrc, list(chain.from_iterable(intersecting_idlists + deletion_way_ids))
     )
 
     # only if there are intersections
@@ -568,6 +580,15 @@ def generate_changes(
 
     # Write all intersecting nodes to file:
     change_writer.add_create(intersection_nodes)
+
+    # Write deletions, including ways + nodes
+    ids_to_delete = []
+    for way_id in chain.from_iterable(deletion_way_ids):
+        # constituent node ids
+        ids_to_delete.extend(way_node_map[way_id])
+        # way id itself
+        ids_to_delete.append(way_id)
+    change_writer.add_delete(ids_to_delete)
 
     change_writer.close()
 
