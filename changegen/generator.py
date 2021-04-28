@@ -19,6 +19,8 @@ from tqdm import tqdm
 
 from .changewriter import Node
 from .changewriter import OSMChangeWriter
+from .changewriter import Relation
+from .changewriter import RelationMember
 from .changewriter import Tag
 from .changewriter import Way
 from .db import OGRDBReader
@@ -497,6 +499,7 @@ def generate_changes(
 
         new_nodes = []
         new_ways = []
+        new_relations = []
 
         if isinstance(wgs84_geom, sg.MultiLineString):
             raise NotImplementedError("MultiLineString not implemeted.")
@@ -507,10 +510,63 @@ def generate_changes(
             new_nodes.extend(nodes)
             new_ways.extend(ways)
             _global_node_id_all_ways.extend(chain.from_iterable([w.nds for w in ways]))
+        if isinstance(wgs84_geom, sg.Polygon):
+            # simple polygons can be treated like Ways.
+            if len(wgs84_geom.interiors) == 0:
+                ways, nodes = _generate_ways_and_nodes(
+                    wgs84_geom.exterior, ids, feat_tags, intersection_db
+                )
+                new_nodes.extend(nodes)
+                new_ways.extend(ways)
+                _global_node_id_all_ways.extend(
+                    chain.from_iterable([w.nds for w in ways])
+                )
+            # more complex polygons (w/ holes) need to be Relations
+            else:
+                outer_ways, outer_nodes = _generate_ways_and_nodes(
+                    # no tags on these ways, they belong on the relation
+                    wgs84_geom.exterior,
+                    ids,
+                    [],
+                    intersection_db,
+                )
+                inner_ways, inner_nodes = [], []
+                for hole in wgs84_geom.interiors:
+                    _ways, _nodes = _generate_ways_and_nodes(
+                        # no tags on any of these Ways
+                        wgs84_geom.exterior,
+                        ids,
+                        [],
+                        intersection_db,
+                    )
+                    inner_ways.extend(_ways)
+                    inner_nodes.extend(_nodes)
+                # Build relation
+                members = [
+                    RelationMember(ref=w.id, type="way", role="outer")
+                    for w in outer_ways
+                ]
+                members.extend(
+                    [
+                        RelationMember(ref=w.id, type="way", role="inner")
+                        for w in inner_ways
+                    ]
+                )
+                # add 'multipolygon' tag (even though it's not.)
+                # https://wiki.openstreetmap.org/wiki/Relation:multipolygon#One_outer_and_one_inner_ring
+                feat_tags.append(Tag(k="type", v="multipolygon"))
+                relation = Relation(
+                    id=next(ids),
+                    version="1",
+                    members=members,
+                    tags=feat_tags,  # original polygon tags on relation
+                )
+                new_ways.extend(outer_ways + inner_ways)
+                new_nodes.extend(outer_nodes + inner_nodes)
+                new_relations.append(relation)
+
         else:
-            raise RuntimeError(
-                f"{type(wgs84_geom)} is not LineString or MultiLineString"
-            )
+            raise RuntimeError(f"{type(wgs84_geom)} is not LineString or Polygon")
 
         ## Write new ways and nodes to file
         if len(new_ways) > 0 or len(new_nodes) > 0:
