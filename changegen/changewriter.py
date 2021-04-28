@@ -41,6 +41,8 @@ OSMCHANGE_GENERATOR = f"osmchangewriter (Python {sys.version_info.major}.{sys.ve
 Tag = namedtuple("Tag", "key,value")
 Node = namedtuple("Node", "id, version, lat, lon, tags")
 Way = namedtuple("Way", "id, version, nds, tags")
+Relation = namedtuple("Relation", "id, version, members, tags")
+RelationMember = namedtuple("RelationMember", "ref, type, role")
 
 
 def write_osm_object(osm, writer):
@@ -67,6 +69,13 @@ def write_osm_object(osm, writer):
             if hasattr(osm, "nds"):
                 for nd in osm.nds:
                     writer.write(etree.Element("nd", ref=str(nd)))
+            if hasattr(osm, "members"):
+                for member in osm.members:
+                    writer.write(
+                        etree.Element(
+                            "member", ref=member.ref, type=member.type, role=member.role
+                        )
+                    )
             writer.flush()
     except AttributeError:
         raise RuntimeError(f"OSM Object {osm} is malformed.")
