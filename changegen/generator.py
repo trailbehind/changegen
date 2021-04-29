@@ -28,6 +28,7 @@ from .db import OGRDBReader
 WGS84 = pyproj.CRS("EPSG:4326")
 WEBMERC = pyproj.CRS("EPSG:3857")
 COORDINATE_PRECISION = 6
+WAY_POINT_THRESHOLD = 1500
 
 
 def _get_way_node_map(osm, way_idlist):
@@ -273,6 +274,10 @@ def _modify_existing_way(way_geom, way_id, nodes, tags, intersection_db):
     """
     new_nodes = nodes.copy()
     way_geom_pts = list(way_geom.coords)
+    if len(way_geom_pts) < WAY_POINT_THRESHOLD:
+        logging.warning(
+            f"There are {len(way_geom_pts)} in the linestring, which is greater than the threshold ({WAY_POINT_THRESHOLD})."
+        )
 
     add_nodes = [
         n
@@ -436,18 +441,23 @@ def generate_changes(
     Generate an osm changefile (outfile) based on features in <table>
     (present in the database for which connection parameters are required).
 
-    All features in <table> will be added to the changefile,
-    as well as any features from <others> that must be modified to
+    All features in `table` will be added to the changefile,
+    as well as any features from `others` that must be modified to
     properly represent linestring intersections. <osmsrc> is a file path
     pointing to an osmium-readable OSM source file (.pbf) for the purpose
     of querying existing node IDS to maintain intersections when modifying
     existing waysm.
 
-    <others> (either a string or list of strings) specifies the other table(s)
+    `others` (either a string or list of strings) specifies the other table(s)
     in the database which must be queried for intersections with any newly-added
-    features in <table>. Any intersections will produce a <modify> change file tag
+    features in `table`. Any intersections will produce a <modify> change file tag
     for the intersecting features in <other> that shares a junction node with
-    the intersecting feature in <table>.
+    the intersecting feature in `table`.
+
+
+    :param table: Database table name from which new features will be derived.
+    :type table: str
+
     """
 
     _global_node_id_all_ways = []
@@ -501,8 +511,10 @@ def generate_changes(
         new_ways = []
         new_relations = []
 
-        if isinstance(wgs84_geom, sg.MultiLineString):
-            raise NotImplementedError("MultiLineString not implemeted.")
+        if isinstance(wgs84_geom, sg.MultiLineString) or isinstance(
+            wgs84_geom, sg.MultiPolygon
+        ):
+            raise NotImplementedError("Multi geometries not supported.")
         if isinstance(wgs84_geom, sg.LineString):
             ways, nodes = _generate_ways_and_nodes(
                 wgs84_geom, ids, feat_tags, intersection_db
@@ -534,7 +546,7 @@ def generate_changes(
                 for hole in wgs84_geom.interiors:
                     _ways, _nodes = _generate_ways_and_nodes(
                         # no tags on any of these Ways
-                        wgs84_geom.exterior,
+                        hole,
                         ids,
                         [],
                         intersection_db,
@@ -554,7 +566,7 @@ def generate_changes(
                 )
                 # add 'multipolygon' tag (even though it's not.)
                 # https://wiki.openstreetmap.org/wiki/Relation:multipolygon#One_outer_and_one_inner_ring
-                feat_tags.append(Tag(k="type", v="multipolygon"))
+                feat_tags.append(Tag(key="type", value="multipolygon"))
                 relation = Relation(
                     id=next(ids),
                     version="1",
@@ -571,6 +583,8 @@ def generate_changes(
         ## Write new ways and nodes to file
         if len(new_ways) > 0 or len(new_nodes) > 0:
             change_writer.add_create(new_nodes + new_ways)
+        if len(new_relations) > 0:
+            change_writer.add_create(new_relations)
 
     # Write all modified ways with intersections
     # Because we have to re-generate nodes for all points

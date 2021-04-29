@@ -56,10 +56,15 @@ def write_osm_object(osm, writer):
     try:
         attrs = dict(osm._asdict())
         objtype = type(osm).__name__.lower()
+        # we don't want to write tags, nds, or members in the main element
+        # for objects. They'll get written as child elements below.
         attrs.pop("tags")
         if hasattr(osm, "nds"):
             attrs.pop("nds")
+        if hasattr(osm, "members"):
+            attrs.pop("members")
         attrs = {k: str(attrs[k]) for k in attrs.keys()}
+
         with writer.element(objtype, **attrs):
             # special cases for objects with
             # <tags> or <nds> (ways). Write as sub-elems
@@ -73,7 +78,10 @@ def write_osm_object(osm, writer):
                 for member in osm.members:
                     writer.write(
                         etree.Element(
-                            "member", ref=member.ref, type=member.type, role=member.role
+                            "member",
+                            ref=str(member.ref),
+                            type=member.type,
+                            role=member.role,
                         )
                     )
             writer.flush()
