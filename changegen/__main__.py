@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 import sys
 
 import click
@@ -17,6 +18,36 @@ Tony Cannistra <tony@gaiagps.com>
 Provides main changegen CLI-based entrypoint.
 
 """
+
+
+def _get_max_ids(source_extract):
+    # get the max ID from source extract using osmium
+    ## first ensure that osmium exists
+    try:
+        proc = subprocess.check_call(
+            "osmium --help",
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError as e:
+        logging.warning(
+            "osmium not found; unable to determine max OSM id in source extract"
+        )
+        raise e
+
+    ids = {}
+    for idtype in ["data.maxid.ways", "data.maxid.nodes", "data.maxid.relations"]:
+        proc = subprocess.Popen(
+            f"osmium fileinfo -e -g {idtype} --no-progress {source_extract}",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if proc.stderr.read():
+            raise subprocess.CalledProcessError(-1, "osmium", "Error in osmium.")
+        ids[idtype.split(".")[-1]] = int(proc.stdout.read().strip())
+    return ids
 
 
 def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
@@ -68,6 +99,13 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     show_default=True,
 )
 @click.option(
+    "--no_collisions",
+    help="Stop execution if the chosen ID offset "
+    "will cause collisions with existing OSM ids."
+    " (requires osmium).",
+    is_flag=True,
+)
+@click.option(
     "--self",
     "-si",
     help=(
@@ -102,6 +140,19 @@ def main(*args: tuple, **kwargs: dict):
     """
     setup_logging(debug=kwargs["debug"])
     logging.debug(f"Args: {kwargs}")
+
+    # Check for ID collisions and warn
+    try:
+        ids = _get_max_ids(kwargs["osmsrc"])
+        if any([kwargs["id_offset"] < id for id in ids.values()]):
+            _log_text = f"Chosen ID offset {kwargs['id_offset']} may cause collisions with existing OSM IDs (max IDs: {ids})."
+            if kwargs["no_collisions"]:
+                logging.fatal(_log_text)
+                sys.exit(-1)
+            else:
+                logging.warning(_log_text)
+    except subprocess.CalledProcessError:
+        logging.error("Error checking existing OSM max ids.")
 
     new_tables = []
     for suffix in kwargs["suffix"]:
