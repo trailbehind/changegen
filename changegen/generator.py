@@ -133,12 +133,14 @@ def _generate_intersection_db(layer, others, db, idgen, self=False):
     # are split using existing features, so they both intersect
     # with new features and existing features).
     # Dictionary trick explained here: https://stackoverflow.com/a/51635247
-    logging.info(f"{len(nodes)} intersection nodes found.")
+    if len(nodes) > 0:
+        logging.info(f"{len(nodes)} intersection nodes found.")
     nodes = {
         (round(n.lat, COORDINATE_PRECISION), round(n.lon, COORDINATE_PRECISION)): n
         for n in nodes
     }.values()
-    logging.info(f"{len(nodes)} intersection nodes after duplicate removal.")
+    if len(nodes) > 0:
+        logging.info(f"{len(nodes)} intersection nodes after duplicate removal.")
 
     rt = rtree.index.Index()
     for node in nodes:
