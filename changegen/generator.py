@@ -280,7 +280,7 @@ def _modify_existing_way(way_geom, way_id, nodes, tags, intersection_db):
     """
     new_nodes = nodes.copy()
     way_geom_pts = list(way_geom.coords)
-    if len(way_geom_pts) < WAY_POINT_THRESHOLD:
+    if len(way_geom_pts) > WAY_POINT_THRESHOLD:
         logging.warning(
             f"There are {len(way_geom_pts)} in the linestring, which is greater than the threshold ({WAY_POINT_THRESHOLD})."
         )
@@ -634,13 +634,36 @@ def generate_changes(
                 other_feat_geom = wkt.loads(_feat.GetGeometryRef().ExportToWkt())
                 other_feat_wgs84 = transform(projection, other_feat_geom)
 
-                existing_node_ids = way_node_map[id]
+                try:
+                    existing_node_ids = way_node_map[id]
+                except KeyError as e:
+                    logging.error(f"Way with ID {id} not found. Is it a relation?")
+                    continue
+
                 # mod_ways, mod_nodes = _generate_ways_and_nodes(
                 #     other_feat_wgs84, ids, _feat_tags, intersection_db
                 # )
-                mod_way = _modify_existing_way(
-                    other_feat_wgs84, id, existing_node_ids, _feat_tags, intersection_db
-                )
+                if isinstance(other_feat_wgs84, sg.LineString):
+                    # Linestrings we can directly modify
+                    mod_way = _modify_existing_way(
+                        other_feat_wgs84,
+                        id,
+                        existing_node_ids,
+                        _feat_tags,
+                        intersection_db,
+                    )
+                if isinstance(other_feat_wgs84, sg.Polygon):
+                    # Polygons we need to modify the outermost ring of a polygon relation.
+                    # However, we need to be sure that the ID that's being referenced here is that of a
+                    # Way and not a Relation.
+                    mod_way = _modify_existing_way(
+                        other_feat_wgs84.exterior,
+                        id,
+                        existing_node_ids,
+                        _feat_tags,
+                        intersection_db,
+                    )
+
                 modified_ways.append(mod_way)
                 _global_node_id_all_ways.extend(mod_way.nds)
 
