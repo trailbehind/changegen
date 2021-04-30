@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import sys
 
@@ -9,6 +10,7 @@ from . import PACKAGE_NAME
 from .generator import generate_changes
 from .util import NotRequiredIf
 from .util import setup_logging
+
 
 """
 cli.py
@@ -98,6 +100,14 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     ),
     is_flag=True,
 )
+@click.option(
+    "--max_nodes_per_way",
+    help=(
+        "Number of nodes allowed per way. Default 2000."
+        " If a way exceeds this value "
+        " it will be subdivided into smaller ways. Pass `none` for no limit."
+    ),
+)
 @click.option("--osmsrc", help="Source OSM PBF File path", required=True)
 @click.argument("dbname", default=os.environ.get("PGDATABASE", "conflate"))
 @click.argument("dbport", default=os.environ.get("PGPORT", "15432"))
@@ -140,6 +150,13 @@ def main(*args: tuple, **kwargs: dict):
     if kwargs["no_intersections"]:
         logging.info("Skipping intersections. --existing flags ignored.")
 
+    max_nodes_per_way = kwargs["max_nodes_per_way"]
+    if str(max_nodes_per_way).lower() == "none":
+        print("setting to inf")
+        max_nodes_per_way = math.inf
+    elif max_nodes_per_way == None:
+        max_nodes_per_way = 2000
+
     for table in new_tables:
         generate_changes(
             table,
@@ -156,6 +173,7 @@ def main(*args: tuple, **kwargs: dict):
             neg_id=kwargs["neg_id"],
             id_offset=kwargs["id_offset"],
             self_intersections=kwargs["self"],
+            max_nodes_per_way=max_nodes_per_way,
         )
 
 

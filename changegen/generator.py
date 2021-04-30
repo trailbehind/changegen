@@ -228,7 +228,7 @@ def _get_point_insertion_index(linestring, point):
     return argmax(insertion_locations) if any(insertion_locations) else len(ls_pts) - 1
 
 
-def _make_ways(nds, tags, idgen, node_limit=2000):
+def _make_ways(nds, tags, idgen, node_limit=2000, closed=False):
     """
     Checks if <nds> contains more than <node_limit> nodes.
 
@@ -238,6 +238,10 @@ def _make_ways(nds, tags, idgen, node_limit=2000):
     If it doesn't, just return one Way with all nodes and tags
     included.
 
+    If closed is True, we create a closed way by appending the
+    ref of the ND at index 0 to the end of the nodelist. Will not
+    do this if the Way exceeds the node limit.
+
     Returns a list of Ways.
     """
     max_new_len = 500
@@ -245,6 +249,8 @@ def _make_ways(nds, tags, idgen, node_limit=2000):
     n_nodes = len(nds)
 
     if n_nodes <= node_limit:
+        if closed:
+            nds.append(nds[0])
         ways.append(Way(id=next(idgen), version=1, nds=nds, tags=tags))
     else:
         joiner_node = None  # nothing to join with
@@ -345,7 +351,14 @@ def _modify_existing_way(way_geom, way_id, nodes, tags, intersection_db):
 
 
 def _generate_ways_and_nodes(
-    geom, idgen, tags, intersection_db, nodes=None, way_id=None
+    geom,
+    idgen,
+    tags,
+    intersection_db,
+    nodes=None,
+    way_id=None,
+    max_nodes_per_way=2000,
+    closed=False,
 ):
     """produce way and node objects for a geometry,
     using generator idgen to assign IDs. Adds tags
@@ -357,6 +370,10 @@ def _generate_ways_and_nodes(
 
     any nodes added in add_nodes are NOT returned in
     the <nodes> retval.
+
+    if `closed` is true, we produce a closed way by copying
+    the `nd` ref of the first node to the end of the
+    `nds` list of the newly-created Way.
 
     """
 
@@ -426,7 +443,9 @@ def _generate_ways_and_nodes(
             node_ids_for_way.insert(idx, n.id)
 
     # If this is a long linestring we need to split it into many ways maybe
-    ways = _make_ways(node_ids_for_way, tags, idgen, node_limit=2000)
+    ways = _make_ways(
+        node_ids_for_way, tags, idgen, node_limit=max_nodes_per_way, closed=closed
+    )
     return ways, nodes
 
 
@@ -445,6 +464,7 @@ def generate_changes(
     neg_id=False,
     compress=True,
     self_intersections=False,
+    max_nodes_per_way=2000,
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -526,7 +546,11 @@ def generate_changes(
             raise NotImplementedError("Multi geometries not supported.")
         if isinstance(wgs84_geom, sg.LineString):
             ways, nodes = _generate_ways_and_nodes(
-                wgs84_geom, ids, feat_tags, intersection_db
+                wgs84_geom,
+                ids,
+                feat_tags,
+                intersection_db,
+                max_nodes_per_way=max_nodes_per_way,
             )
             new_nodes.extend(nodes)
             new_ways.extend(ways)
@@ -535,7 +559,12 @@ def generate_changes(
             # simple polygons can be treated like Ways.
             if len(wgs84_geom.interiors) == 0:
                 ways, nodes = _generate_ways_and_nodes(
-                    wgs84_geom.exterior, ids, feat_tags, intersection_db
+                    wgs84_geom.exterior,
+                    ids,
+                    feat_tags,
+                    intersection_db,
+                    max_nodes_per_way=max_nodes_per_way,
+                    closed=True,
                 )
                 new_nodes.extend(nodes)
                 new_ways.extend(ways)
@@ -550,6 +579,8 @@ def generate_changes(
                     ids,
                     [],
                     intersection_db,
+                    max_nodes_per_way=max_nodes_per_way,
+                    closed=True,
                 )
                 inner_ways, inner_nodes = [], []
                 for hole in wgs84_geom.interiors:
@@ -559,6 +590,8 @@ def generate_changes(
                         ids,
                         [],
                         intersection_db,
+                        max_nodes_per_way=max_nodes_per_way,
+                        closed=True,
                     )
                     inner_ways.extend(_ways)
                     inner_nodes.extend(_nodes)
