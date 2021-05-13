@@ -555,7 +555,7 @@ def generate_changes(
             new_nodes.extend(nodes)
             new_ways.extend(ways)
             _global_node_id_all_ways.extend(chain.from_iterable([w.nds for w in ways]))
-        elif isinstance(wgs84_geom, sg.Polygon):
+        if isinstance(wgs84_geom, sg.Polygon):
             # simple polygons can be treated like Ways.
             if len(wgs84_geom.interiors) == 0:
                 ways, nodes = _generate_ways_and_nodes(
@@ -690,13 +690,14 @@ def generate_changes(
                 if isinstance(other_feat_wgs84, sg.Polygon):
                     # Polygons we need to modify the outermost ring of a polygon relation.
                     # However, we need to be sure that the ID that's being referenced here is that of a
-                    # Way and not a Relation.
-                    mod_way = _modify_existing_way(
-                        other_feat_wgs84.exterior,
-                        id,
-                        existing_node_ids,
-                        _feat_tags,
-                        intersection_db,
+                    # Way and not a Relation. This is complicated and likely not worth implementing
+                    # right now.
+                    logging.warning(
+                        (
+                            "Polygon Intersection Warning: a feature intersects "
+                            "With a polygon. Modifying this polygon to add an intersection "
+                            "node is not currently supported."
+                        )
                     )
 
                 modified_ways.append(mod_way)
