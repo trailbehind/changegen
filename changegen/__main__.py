@@ -8,7 +8,6 @@ import psycopg2 as psy
 
 from . import PACKAGE_NAME
 from .generator import generate_changes
-from .util import NotRequiredIf
 from .util import setup_logging
 
 
@@ -61,14 +60,6 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     default=[],
 )
 @click.option(
-    "--no_intersections",
-    help=(
-        "Do not attempt to find intersections with existing data. "
-        "Any table names passed with -e will be ignoored."
-    ),
-    is_flag=True,
-)
-@click.option(
     "-e",
     "--existing",
     help=(
@@ -77,8 +68,7 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
         " Cannot be used with --no_intersections."
     ),
     multiple=True,
-    cls=NotRequiredIf,
-    not_required_if="no_intersections",
+    default=[],
 )
 @click.option("-o", "-outdir", help="Directory to output change files to.", default=".")
 @click.option("--compress", help="gzip-compress xml output", is_flag=True)
@@ -160,7 +150,7 @@ def main(*args: tuple, **kwargs: dict):
     for table in new_tables:
         generate_changes(
             table,
-            kwargs["existing"] if not kwargs["no_intersections"] else [],
+            kwargs["existing"],
             kwargs["deletions"],
             kwargs["dbname"],
             kwargs["dbport"],
