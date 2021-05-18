@@ -65,7 +65,6 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     help=(
         "Table of geometries to use when determining whether existing"
         " features must be altered to include linestring intersections."
-        " Cannot be used with --no_intersections."
     ),
     multiple=True,
     default=[],
@@ -137,8 +136,6 @@ def main(*args: tuple, **kwargs: dict):
             )
         )
     logging.info(f"Found tables in db: {new_tables}")
-    if kwargs["no_intersections"]:
-        logging.info("Skipping intersections. --existing flags ignored.")
 
     max_nodes_per_way = kwargs["max_nodes_per_way"]
     if str(max_nodes_per_way).lower() == "none":
