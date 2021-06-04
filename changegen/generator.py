@@ -429,6 +429,7 @@ def generate_changes(
     neg_id=False,
     compress=True,
     self_intersections=False,
+    modify_only=False,
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -478,6 +479,17 @@ def generate_changes(
         pyproj.CRS(f"EPSG:{layer_epsg}"), WGS84, always_xy=True
     ).transform
 
+    ## If we're creating "modify" nodes instead of create nodes,
+    ## we need to go get the IDs of the nodes that make up
+    ## any Ways that will be modified. Currently this only
+    ## supports linestrings.
+
+    existing_nodes_for_ways = []
+    if modify_only:
+        existing_nodes_for_ways = _get_way_node_map(
+            osmsrc, db_reader.get_all_ids_for_layer(table)
+        )
+
     # Main work loop; features in <table> are work unit.
     for feature in tqdm(
         new_feature_iter,
@@ -501,12 +513,33 @@ def generate_changes(
         if isinstance(wgs84_geom, sg.MultiLineString):
             raise NotImplementedError("MultiLineString not implemeted.")
         if isinstance(wgs84_geom, sg.LineString):
-            ways, nodes = _generate_ways_and_nodes(
-                wgs84_geom, ids, feat_tags, intersection_db
-            )
-            new_nodes.extend(nodes)
-            new_ways.extend(ways)
-            _global_node_id_all_ways.extend(chain.from_iterable([w.nds for w in ways]))
+            ## If we're taking all features to be newly-created (~modify_only)
+            ## we need to create ways and nodes for that feature.
+            ## IF we're only modifying existing features with features
+            ## in the table, we just create a new Way with existing ID and nodes and new tags.
+
+            ## NOTE that modify_only does not support modifying geometries.
+
+            if modify_only:
+                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
+
+                new_ways.append(
+                    Way(
+                        id=existing_id,
+                        version=2,
+                        nds=existing_nodes_for_ways[existing_id],
+                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                    )
+                )
+            else:
+                ways, nodes = _generate_ways_and_nodes(
+                    wgs84_geom, ids, feat_tags, intersection_db
+                )
+                new_nodes.extend(nodes)
+                new_ways.extend(ways)
+                _global_node_id_all_ways.extend(
+                    chain.from_iterable([w.nds for w in ways])
+                )
         else:
             raise RuntimeError(
                 f"{type(wgs84_geom)} is not LineString or MultiLineString"
@@ -514,7 +547,10 @@ def generate_changes(
 
         ## Write new ways and nodes to file
         if len(new_ways) > 0 or len(new_nodes) > 0:
-            change_writer.add_create(new_nodes + new_ways)
+            if modify_only:
+                change_writer.add_modify(new_ways)
+            else:
+                change_writer.add_create(new_nodes + new_ways)
 
     # Write all modified ways with intersections
     # Because we have to re-generate nodes for all points
