@@ -7,6 +7,7 @@ import psycopg2 as psy
 
 from . import PACKAGE_NAME
 from .generator import generate_changes
+from .generator import generate_deletions
 from .util import setup_logging
 
 """
@@ -152,7 +153,6 @@ def main(*args: tuple, **kwargs: dict):
         generate_changes(
             table,
             kwargs["existing"],
-            kwargs["deletions"],
             kwargs["dbname"],
             kwargs["dbport"],
             kwargs["dbuser"],
@@ -165,6 +165,20 @@ def main(*args: tuple, **kwargs: dict):
             id_offset=kwargs["id_offset"],
             self_intersections=kwargs["self"],
             modify_only=kwargs["modify_meta"],
+        )
+
+    for table in kwargs["deletions"]:
+        generate_deletions(
+            table,
+            "osm_id",
+            kwargs["dbname"],
+            kwargs["dbport"],
+            kwargs["dbuser"],
+            kwargs["dbpass"] if kwargs["dbpass"] != "" else None,
+            kwargs["dbhost"],
+            kwargs["osmsrc"],
+            os.path.join(str(kwargs["o"]), f"{table}.osc"),
+            compress=kwargs["compress"],
         )
 
 

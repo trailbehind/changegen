@@ -86,10 +86,10 @@ def _nodes_for_intersections(ilayer, idgen):
     return nodes
 
 
-def _get_deleted_way_ids(table, db):
+def _get_deleted_way_ids(table, db, idfield="osm_id"):
     """Returns OSM ids present in osm_id column of table as list."""
     deletions_iter = db.get_layer_iter(table)
-    return [_f.GetFieldAsString(_f.GetFieldIndex("osm_id")) for _f in deletions_iter]
+    return [_f.GetFieldAsString(_f.GetFieldIndex(idfield)) for _f in deletions_iter]
 
 
 def _generate_intersection_db(layer, others, db, idgen, self=False):
@@ -424,7 +424,6 @@ def _generate_ways_and_nodes(
 def generate_changes(
     table,
     others,
-    deletions,
     dbname,
     dbport,
     dbuser,
@@ -564,14 +563,10 @@ def generate_changes(
     # within the intersecting linestrings, we write
     # those as new nodes. We also get deletion ways +
     # their corresponding nodes here too, to save time.
-    logging.info(f"Retrieving deletion nodes for tables: {deletions}")
-    deletion_way_ids = [_get_deleted_way_ids(table, db_reader) for table in deletions]
-    logging.info(
-        f"Retrieving existing Node IDs for modified and deleted ways (file: {osmsrc})"
-    )
+
     modified_ways = []
     way_node_map = _get_way_node_map(
-        osmsrc, list(chain.from_iterable(intersecting_idlists + deletion_way_ids))
+        osmsrc, list(chain.from_iterable(intersecting_idlists))
     )
 
     # only if there are intersections
@@ -617,18 +612,51 @@ def generate_changes(
     # Write all intersecting nodes to file:
     change_writer.add_create(intersection_nodes)
 
-    # Write deletions, including ways + nodes
-    ids_to_delete = []
-    for way_id in chain.from_iterable(deletion_way_ids):
-        # constituent node ids
-        ids_to_delete.extend(way_node_map[way_id])
-        # way id itself
-        ids_to_delete.append(way_id)
-    change_writer.add_delete(ids_to_delete)
-
     change_writer.close()
 
     _node_counts = Counter(_global_node_id_all_ways)
     logging.debug(f"Most common nodes (N=20): {_node_counts.most_common(20)}")
 
     return True
+
+
+def generate_deletions(
+    table,
+    idfield,
+    dbname,
+    dbport,
+    dbuser,
+    dbpass,
+    dbhost,
+    osmsrc,
+    outfile,
+    compress=True,
+):
+    """
+    Produce a changefile with <delete> nodes for all IDs in table.
+    IDs are chosen via idfield.
+    """
+    db_reader = OGRDBReader(dbname, dbport, dbuser, dbpass, dbhost)
+    change_writer = OSMChangeWriter(outfile, compress=compress)
+
+    logging.info(f"Retrieving deletion nodes for table: {table}")
+    deletion_way_ids = _get_deleted_way_ids(table, db_reader, idfield)
+    logging.info(f"Retrieving existing Node IDs for deleted ways (file: {osmsrc})")
+
+    way_node_map = _get_way_node_map(
+        osmsrc, list(chain.from_iterable(deletion_way_ids))
+    )
+
+    # Write deletions, including ways + nodes
+    ids_to_delete = []
+    for way_id in chain.from_iterable(deletion_way_ids):
+        # constituent node ids
+        ids_to_delete.extend(
+            [
+                Node(id=nid, version=99, lat=None, lon=None, tags=[])
+                for nid in way_node_map[way_id]
+            ]
+        )
+        # way id itself
+        ids_to_delete.append(Way(id=way_id, version=99, nds=[], tags=[]))
+    change_writer.add_delete(ids_to_delete)
