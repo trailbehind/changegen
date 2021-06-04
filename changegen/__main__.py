@@ -48,6 +48,16 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     multiple=True,
 )
 @click.option(
+    "--deletions",
+    help=(
+        "Name of table containing OSM IDs for which <delete> tags "
+        " should be created in the resulting changefile. Table must "
+        " contain <osm_id> column. Can be passed multiple times."
+    ),
+    multiple=True,
+    default=[],
+)
+@click.option(
     "-e",
     "--existing",
     help=(
@@ -142,6 +152,7 @@ def main(*args: tuple, **kwargs: dict):
         generate_changes(
             table,
             kwargs["existing"],
+            kwargs["deletions"],
             kwargs["dbname"],
             kwargs["dbport"],
             kwargs["dbuser"],

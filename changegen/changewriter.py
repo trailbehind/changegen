@@ -161,3 +161,14 @@ class OSMChangeWriter(object):
                     write_osm_object(e, writer)
             writer.flush()
         self._data_written = True
+
+    def add_delete(self, elementlist):
+        """Creates a <delete> element containing
+        all elements in elementlist"""
+
+        with self.xmlwriter as writer:
+            with writer.element("delete"):
+                for e in elementlist:
+                    write_osm_object(e, writer)
+                writer.flush()
+        self._data_written = True
