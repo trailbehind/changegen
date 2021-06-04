@@ -86,10 +86,10 @@ def _nodes_for_intersections(ilayer, idgen):
     return nodes
 
 
-def _get_deleted_way_ids(table, db):
+def _get_deleted_way_ids(table, db, idfield="osm_id"):
     """Returns OSM ids present in osm_id column of table as list."""
     deletions_iter = db.get_layer_iter(table)
-    return [_f.GetFieldAsString(_f.GetFieldIndex("osm_id")) for _f in deletions_iter]
+    return [_f.GetFieldAsString(_f.GetFieldIndex(idfield)) for _f in deletions_iter]
 
 
 def _generate_intersection_db(layer, others, db, idgen, self=False):
@@ -424,7 +424,6 @@ def _generate_ways_and_nodes(
 def generate_changes(
     table,
     others,
-    deletions,
     dbname,
     dbport,
     dbuser,
@@ -436,6 +435,7 @@ def generate_changes(
     neg_id=False,
     compress=True,
     self_intersections=False,
+    modify_only=False,
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -485,6 +485,17 @@ def generate_changes(
         pyproj.CRS(f"EPSG:{layer_epsg}"), WGS84, always_xy=True
     ).transform
 
+    ## If we're creating "modify" nodes instead of create nodes,
+    ## we need to go get the IDs of the nodes that make up
+    ## any Ways that will be modified. Currently this only
+    ## supports linestrings.
+
+    existing_nodes_for_ways = []
+    if modify_only:
+        existing_nodes_for_ways = _get_way_node_map(
+            osmsrc, db_reader.get_all_ids_for_layer(table)
+        )
+
     # Main work loop; features in <table> are work unit.
     for feature in tqdm(
         new_feature_iter,
@@ -508,12 +519,33 @@ def generate_changes(
         if isinstance(wgs84_geom, sg.MultiLineString):
             raise NotImplementedError("MultiLineString not implemeted.")
         if isinstance(wgs84_geom, sg.LineString):
-            ways, nodes = _generate_ways_and_nodes(
-                wgs84_geom, ids, feat_tags, intersection_db
-            )
-            new_nodes.extend(nodes)
-            new_ways.extend(ways)
-            _global_node_id_all_ways.extend(chain.from_iterable([w.nds for w in ways]))
+            ## If we're taking all features to be newly-created (~modify_only)
+            ## we need to create ways and nodes for that feature.
+            ## IF we're only modifying existing features with features
+            ## in the table, we just create a new Way with existing ID and nodes and new tags.
+
+            ## NOTE that modify_only does not support modifying geometries.
+
+            if modify_only:
+                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
+
+                new_ways.append(
+                    Way(
+                        id=existing_id,
+                        version=2,
+                        nds=existing_nodes_for_ways[existing_id],
+                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                    )
+                )
+            else:
+                ways, nodes = _generate_ways_and_nodes(
+                    wgs84_geom, ids, feat_tags, intersection_db
+                )
+                new_nodes.extend(nodes)
+                new_ways.extend(ways)
+                _global_node_id_all_ways.extend(
+                    chain.from_iterable([w.nds for w in ways])
+                )
         else:
             raise RuntimeError(
                 f"{type(wgs84_geom)} is not LineString or MultiLineString"
@@ -521,21 +553,20 @@ def generate_changes(
 
         ## Write new ways and nodes to file
         if len(new_ways) > 0 or len(new_nodes) > 0:
-            change_writer.add_create(new_nodes + new_ways)
+            if modify_only:
+                change_writer.add_modify(new_ways)
+            else:
+                change_writer.add_create(new_nodes + new_ways)
 
     # Write all modified ways with intersections
     # Because we have to re-generate nodes for all points
     # within the intersecting linestrings, we write
     # those as new nodes. We also get deletion ways +
     # their corresponding nodes here too, to save time.
-    logging.info(f"Retrieving deletion nodes for tables: {deletions}")
-    deletion_way_ids = [_get_deleted_way_ids(table, db_reader) for table in deletions]
-    logging.info(
-        f"Retrieving existing Node IDs for modified and deleted ways (file: {osmsrc})"
-    )
+
     modified_ways = []
     way_node_map = _get_way_node_map(
-        osmsrc, list(chain.from_iterable(intersecting_idlists + deletion_way_ids))
+        osmsrc, list(chain.from_iterable(intersecting_idlists))
     )
 
     # only if there are intersections
@@ -581,18 +612,51 @@ def generate_changes(
     # Write all intersecting nodes to file:
     change_writer.add_create(intersection_nodes)
 
-    # Write deletions, including ways + nodes
-    ids_to_delete = []
-    for way_id in chain.from_iterable(deletion_way_ids):
-        # constituent node ids
-        ids_to_delete.extend(way_node_map[way_id])
-        # way id itself
-        ids_to_delete.append(way_id)
-    change_writer.add_delete(ids_to_delete)
-
     change_writer.close()
 
     _node_counts = Counter(_global_node_id_all_ways)
     logging.debug(f"Most common nodes (N=20): {_node_counts.most_common(20)}")
 
     return True
+
+
+def generate_deletions(
+    table,
+    idfield,
+    dbname,
+    dbport,
+    dbuser,
+    dbpass,
+    dbhost,
+    osmsrc,
+    outfile,
+    compress=True,
+):
+    """
+    Produce a changefile with <delete> nodes for all IDs in table.
+    IDs are chosen via idfield.
+    """
+    db_reader = OGRDBReader(dbname, dbport, dbuser, dbpass, dbhost)
+    change_writer = OSMChangeWriter(outfile, compress=compress)
+
+    logging.info(f"Retrieving deletion nodes for table: {table}")
+    deletion_way_ids = _get_deleted_way_ids(table, db_reader, idfield)
+    logging.info(f"Retrieving existing Node IDs for deleted ways (file: {osmsrc})")
+
+    way_node_map = _get_way_node_map(
+        osmsrc, list(chain.from_iterable(deletion_way_ids))
+    )
+
+    # Write deletions, including ways + nodes
+    ids_to_delete = []
+    for way_id in chain.from_iterable(deletion_way_ids):
+        # constituent node ids
+        ids_to_delete.extend(
+            [
+                Node(id=nid, version=99, lat=None, lon=None, tags=[])
+                for nid in way_node_map[way_id]
+            ]
+        )
+        # way id itself
+        ids_to_delete.append(Way(id=way_id, version=99, nds=[], tags=[]))
+    change_writer.add_delete(ids_to_delete)
