@@ -146,7 +146,7 @@ def main(*args: tuple, **kwargs: dict):
 
     if kwargs["modify_meta"] and kwargs["existing"]:
         raise RuntimeError("--modify_meta cannot be used with --existing.")
-    if not kwargs["modify_meta"] and not kwargs["existing"]:
+    if not kwargs["deletions"] and not kwargs["modify_meta"] and not kwargs["existing"]:
         raise RuntimeError("Need either --modify_meta or --existing.")
 
     for table in new_tables:
