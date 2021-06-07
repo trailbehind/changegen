@@ -631,32 +631,44 @@ def generate_deletions(
     osmsrc,
     outfile,
     compress=True,
+    skip_nodes=False,
 ):
     """
     Produce a changefile with <delete> nodes for all IDs in table.
     IDs are chosen via idfield.
+
+    TODO: provide an option to not delete Nodes (which could break intersections.)
+
     """
     db_reader = OGRDBReader(dbname, dbport, dbuser, dbpass, dbhost)
     change_writer = OSMChangeWriter(outfile, compress=compress)
 
     logging.info(f"Retrieving deletion nodes for table: {table}")
-    deletion_way_ids = _get_deleted_way_ids(table, db_reader, idfield)
+    deletion_way_ids = set(_get_deleted_way_ids(table, db_reader, idfield))
     logging.info(f"Retrieving existing Node IDs for deleted ways (file: {osmsrc})")
 
-    way_node_map = _get_way_node_map(
-        osmsrc, list(chain.from_iterable(deletion_way_ids))
-    )
+    way_node_map = []
+    if not skip_nodes:
+        way_node_map = _get_way_node_map(osmsrc, deletion_way_ids)
 
     # Write deletions, including ways + nodes
-    ids_to_delete = []
-    for way_id in chain.from_iterable(deletion_way_ids):
+    # we need to ensure that we don't write <delete> tags
+    # for the same Node twice, so we keep track of the ones we've
+    # written and skip them if they re-occur
+    objs_to_delete = []
+    known_nodes = set()
+    for way_id in deletion_way_ids:
         # constituent node ids
-        ids_to_delete.extend(
-            [
-                Node(id=nid, version=99, lat=None, lon=None, tags=[])
-                for nid in way_node_map[way_id]
-            ]
-        )
+        if not skip_nodes:
+            for nid in way_node_map[way_id]:
+                if nid not in known_nodes:
+                    objs_to_delete.append(
+                        Node(id=nid, version=99, lat=0, lon=0, tags=[])
+                    )
+                else:
+                    logging.debug(f"Skipping node {nid} as it already was written.")
+                known_nodes.add(nid)
         # way id itself
-        ids_to_delete.append(Way(id=way_id, version=99, nds=[], tags=[]))
-    change_writer.add_delete(ids_to_delete)
+        objs_to_delete.append(Way(id=way_id, version=99, nds=[], tags=[]))
+    change_writer.add_delete(objs_to_delete)
+    change_writer.close()
