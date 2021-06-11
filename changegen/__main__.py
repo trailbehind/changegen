@@ -1,6 +1,7 @@
 import logging
 import math
 import os
+import subprocess
 import sys
 
 import click
@@ -8,6 +9,7 @@ import psycopg2 as psy
 
 from . import PACKAGE_NAME
 from .generator import generate_changes
+from .generator import generate_deletions
 from .util import setup_logging
 
 
@@ -19,6 +21,36 @@ Tony Cannistra <tony@gaiagps.com>
 Provides main changegen CLI-based entrypoint.
 
 """
+
+
+def _get_max_ids(source_extract):
+    # get the max ID from source extract using osmium
+    ## first ensure that osmium exists
+    try:
+        proc = subprocess.check_call(
+            "osmium --help",
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError as e:
+        logging.warning(
+            "osmium not found; unable to determine max OSM id in source extract"
+        )
+        raise e
+
+    ids = {}
+    for idtype in ["data.maxid.ways", "data.maxid.nodes", "data.maxid.relations"]:
+        proc = subprocess.Popen(
+            f"osmium fileinfo -e -g {idtype} --no-progress {source_extract}",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if proc.stderr.read():
+            raise subprocess.CalledProcessError(-1, "osmium", "Error in osmium.")
+        ids[idtype.split(".")[-1]] = int(proc.stdout.read().strip())
+    return ids
 
 
 def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
@@ -69,6 +101,16 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     multiple=True,
     default=[],
 )
+@click.option(
+    "-m",
+    "--modify_meta",
+    help=(
+        "Create <modify> tags in changefile, instead of create nodes "
+        "for all tables specified by --suffix. Only applies to "
+        "Ways with with modified metadata, not geometries (see full help)."
+    ),
+    is_flag=True,
+)
 @click.option("-o", "-outdir", help="Directory to output change files to.", default=".")
 @click.option("--compress", help="gzip-compress xml output", is_flag=True)
 @click.option("--neg_id", help="use negative ids for new OSM elements", is_flag=True)
@@ -78,6 +120,13 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     type=int,
     default=0,
     show_default=True,
+)
+@click.option(
+    "--no_collisions",
+    help="Stop execution if the chosen ID offset "
+    "will cause collisions with existing OSM ids."
+    " (requires osmium).",
+    is_flag=True,
 )
 @click.option(
     "--self",
@@ -119,9 +168,29 @@ def main(*args: tuple, **kwargs: dict):
     properly represent linestring intersections. The resulting file
     can be applied to a Planet file to alter the file with the
     conflated changes.
+
+    If the tables selected by --suffix do not represent new features
+    but actually represent features with modified metadata, use --modify_meta.
+    NOTE that --modify_meta does not support modified geometries (use default
+    behavior with a --delete table for that).
+    --modify_meta is not compatible with intersection detection. Creation of
+    modify nodes is only compatible with linestring features.
     """
     setup_logging(debug=kwargs["debug"])
     logging.debug(f"Args: {kwargs}")
+
+    # Check for ID collisions and warn
+    try:
+        ids = _get_max_ids(kwargs["osmsrc"])
+        if any([kwargs["id_offset"] < id for id in ids.values()]):
+            _log_text = f"Chosen ID offset {kwargs['id_offset']} may cause collisions with existing OSM IDs (max IDs: {ids})."
+            if kwargs["no_collisions"]:
+                logging.fatal(_log_text)
+                sys.exit(-1)
+            else:
+                logging.warning(_log_text)
+    except subprocess.CalledProcessError:
+        logging.error("Error checking existing OSM max ids.")
 
     new_tables = []
     for suffix in kwargs["suffix"]:
@@ -143,6 +212,10 @@ def main(*args: tuple, **kwargs: dict):
         max_nodes_per_way = math.inf
     elif max_nodes_per_way == None:
         max_nodes_per_way = 2000
+    if kwargs["modify_meta"] and kwargs["existing"]:
+        raise RuntimeError("--modify_meta cannot be used with --existing.")
+    if not kwargs["deletions"] and not kwargs["modify_meta"] and not kwargs["existing"]:
+        raise RuntimeError("Need either --modify_meta or --existing.")
 
     for table in new_tables:
         generate_changes(
@@ -161,6 +234,21 @@ def main(*args: tuple, **kwargs: dict):
             id_offset=kwargs["id_offset"],
             self_intersections=kwargs["self"],
             max_nodes_per_way=max_nodes_per_way,
+            modify_only=kwargs["modify_meta"],
+        )
+
+    for table in kwargs["deletions"]:
+        generate_deletions(
+            table,
+            "osm_id",
+            kwargs["dbname"],
+            kwargs["dbport"],
+            kwargs["dbuser"],
+            kwargs["dbpass"] if kwargs["dbpass"] != "" else None,
+            kwargs["dbhost"],
+            kwargs["osmsrc"],
+            os.path.join(str(kwargs["o"]), f"{table}.osc"),
+            compress=kwargs["compress"],
         )
 
 

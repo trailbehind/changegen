@@ -89,10 +89,10 @@ def _nodes_for_intersections(ilayer, idgen):
     return nodes
 
 
-def _get_deleted_way_ids(table, db):
+def _get_deleted_way_ids(table, db, idfield="osm_id"):
     """Returns OSM ids present in osm_id column of table as list."""
     deletions_iter = db.get_layer_iter(table)
-    return [_f.GetFieldAsString(_f.GetFieldIndex("osm_id")) for _f in deletions_iter]
+    return [_f.GetFieldAsString(_f.GetFieldIndex(idfield)) for _f in deletions_iter]
 
 
 def _generate_intersection_db(layer, others, db, idgen, self=False):
@@ -465,6 +465,7 @@ def generate_changes(
     compress=True,
     self_intersections=False,
     max_nodes_per_way=2000,
+    modify_only=False,
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -519,6 +520,17 @@ def generate_changes(
         pyproj.CRS(f"EPSG:{layer_epsg}"), WGS84, always_xy=True
     ).transform
 
+    ## If we're creating "modify" nodes instead of create nodes,
+    ## we need to go get the IDs of the nodes that make up
+    ## any Ways that will be modified. Currently this only
+    ## supports linestrings.
+
+    existing_nodes_for_ways = []
+    if modify_only:
+        existing_nodes_for_ways = _get_way_node_map(
+            osmsrc, db_reader.get_all_ids_for_layer(table)
+        )
+
     # Main work loop; features in <table> are work unit.
     for feature in tqdm(
         new_feature_iter,
@@ -556,75 +568,96 @@ def generate_changes(
             new_ways.extend(ways)
             _global_node_id_all_ways.extend(chain.from_iterable([w.nds for w in ways]))
         if isinstance(wgs84_geom, sg.Polygon):
-            # simple polygons can be treated like Ways.
-            if len(wgs84_geom.interiors) == 0:
-                ways, nodes = _generate_ways_and_nodes(
-                    wgs84_geom.exterior,
-                    ids,
-                    feat_tags,
-                    intersection_db,
-                    max_nodes_per_way=max_nodes_per_way,
-                    closed=True,
+            ## If we're taking all features to be newly-created (~modify_only)
+            ## we need to create ways and nodes for that feature.
+            ## IF we're only modifying existing features with features
+            ## in the table, we just create a new Way with existing ID and nodes and new tags.
+
+            ## NOTE that modify_only does not support modifying geometries.
+
+            if modify_only:
+                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
+
+                new_ways.append(
+                    Way(
+                        id=existing_id,
+                        version=2,
+                        nds=existing_nodes_for_ways[existing_id],
+                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                    )
                 )
-                new_nodes.extend(nodes)
-                new_ways.extend(ways)
-                _global_node_id_all_ways.extend(
-                    chain.from_iterable([w.nds for w in ways])
-                )
-            # more complex polygons (w/ holes) need to be Relations
-            else:
-                outer_ways, outer_nodes = _generate_ways_and_nodes(
-                    # no tags on these ways, they belong on the relation
-                    wgs84_geom.exterior,
-                    ids,
-                    [],
-                    intersection_db,
-                    max_nodes_per_way=max_nodes_per_way,
-                    closed=True,
-                )
-                inner_ways, inner_nodes = [], []
-                for hole in wgs84_geom.interiors:
-                    _ways, _nodes = _generate_ways_and_nodes(
-                        # no tags on any of these Ways
-                        hole,
+            else:  # not modifying, just creating
+                # simple polygons can be treated like Ways.
+                if len(wgs84_geom.interiors) == 0:
+                    ways, nodes = _generate_ways_and_nodes(
+                        wgs84_geom.exterior,
+                        ids,
+                        feat_tags,
+                        intersection_db,
+                        max_nodes_per_way=max_nodes_per_way,
+                        closed=True,
+                    )
+                    new_nodes.extend(nodes)
+                    new_ways.extend(ways)
+                    _global_node_id_all_ways.extend(
+                        chain.from_iterable([w.nds for w in ways])
+                    )
+                else:  # more complex polygons (w/ holes) need to be Relations
+                    outer_ways, outer_nodes = _generate_ways_and_nodes(
+                        # no tags on these ways, they belong on the relation
+                        wgs84_geom.exterior,
                         ids,
                         [],
                         intersection_db,
                         max_nodes_per_way=max_nodes_per_way,
                         closed=True,
                     )
-                    inner_ways.extend(_ways)
-                    inner_nodes.extend(_nodes)
-                # Build relation
-                members = [
-                    RelationMember(ref=w.id, type="way", role="outer")
-                    for w in outer_ways
-                ]
-                members.extend(
-                    [
-                        RelationMember(ref=w.id, type="way", role="inner")
-                        for w in inner_ways
+                    inner_ways, inner_nodes = [], []
+                    for hole in wgs84_geom.interiors:
+                        _ways, _nodes = _generate_ways_and_nodes(
+                            # no tags on any of these Ways
+                            hole,
+                            ids,
+                            [],
+                            intersection_db,
+                            max_nodes_per_way=max_nodes_per_way,
+                            closed=True,
+                        )
+                        inner_ways.extend(_ways)
+                        inner_nodes.extend(_nodes)
+                    # Build relation
+                    members = [
+                        RelationMember(ref=w.id, type="way", role="outer")
+                        for w in outer_ways
                     ]
-                )
-                # add 'multipolygon' tag (even though it's not.)
-                # https://wiki.openstreetmap.org/wiki/Relation:multipolygon#One_outer_and_one_inner_ring
-                feat_tags.append(Tag(key="type", value="multipolygon"))
-                relation = Relation(
-                    id=next(ids),
-                    version="1",
-                    members=members,
-                    tags=feat_tags,  # original polygon tags on relation
-                )
-                new_ways.extend(outer_ways + inner_ways)
-                new_nodes.extend(outer_nodes + inner_nodes)
-                new_relations.append(relation)
+                    members.extend(
+                        [
+                            RelationMember(ref=w.id, type="way", role="inner")
+                            for w in inner_ways
+                        ]
+                    )
+                    # add 'multipolygon' tag (even though it's not.)
+                    # https://wiki.openstreetmap.org/wiki/Relation:multipolygon#One_outer_and_one_inner_ring
+                    feat_tags.append(Tag(key="type", value="multipolygon"))
+                    relation = Relation(
+                        id=next(ids),
+                        version="1",
+                        members=members,
+                        tags=feat_tags,  # original polygon tags on relation
+                    )
+                    new_ways.extend(outer_ways + inner_ways)
+                    new_nodes.extend(outer_nodes + inner_nodes)
+                    new_relations.append(relation)
 
         else:
             raise RuntimeError(f"{type(wgs84_geom)} is not LineString or Polygon")
 
         ## Write new ways and nodes to file
         if len(new_ways) > 0 or len(new_nodes) > 0:
-            change_writer.add_create(new_nodes + new_ways)
+            if modify_only:
+                change_writer.add_modify(new_ways)
+            else:
+                change_writer.add_create(new_nodes + new_ways)
         if len(new_relations) > 0:
             change_writer.add_create(new_relations)
 
@@ -638,6 +671,7 @@ def generate_changes(
     logging.info(
         f"Retrieving existing Node IDs for modified and deleted ways (file: {osmsrc})"
     )
+
     modified_ways = []
     way_node_map = _get_way_node_map(
         osmsrc, list(chain.from_iterable(intersecting_idlists + deletion_way_ids))
@@ -725,3 +759,57 @@ def generate_changes(
     logging.debug(f"Most common nodes (N=20): {_node_counts.most_common(20)}")
 
     return True
+
+
+def generate_deletions(
+    table,
+    idfield,
+    dbname,
+    dbport,
+    dbuser,
+    dbpass,
+    dbhost,
+    osmsrc,
+    outfile,
+    compress=True,
+    skip_nodes=False,
+):
+    """
+    Produce a changefile with <delete> nodes for all IDs in table.
+    IDs are chosen via idfield.
+
+    TODO: provide an option to not delete Nodes (which could break intersections.)
+
+    """
+    db_reader = OGRDBReader(dbname, dbport, dbuser, dbpass, dbhost)
+    change_writer = OSMChangeWriter(outfile, compress=compress)
+
+    logging.info(f"Retrieving deletion nodes for table: {table}")
+    deletion_way_ids = set(_get_deleted_way_ids(table, db_reader, idfield))
+    logging.info(f"Retrieving existing Node IDs for deleted ways (file: {osmsrc})")
+
+    way_node_map = []
+    if not skip_nodes:
+        way_node_map = _get_way_node_map(osmsrc, deletion_way_ids)
+
+    # Write deletions, including ways + nodes
+    # we need to ensure that we don't write <delete> tags
+    # for the same Node twice, so we keep track of the ones we've
+    # written and skip them if they re-occur
+    objs_to_delete = []
+    known_nodes = set()
+    for way_id in deletion_way_ids:
+        # constituent node ids
+        if not skip_nodes:
+            for nid in way_node_map[way_id]:
+                if nid not in known_nodes:
+                    objs_to_delete.append(
+                        Node(id=nid, version=99, lat=0, lon=0, tags=[])
+                    )
+                else:
+                    logging.debug(f"Skipping node {nid} as it already was written.")
+                known_nodes.add(nid)
+        # way id itself
+        objs_to_delete.append(Way(id=way_id, version=99, nds=[], tags=[]))
+    change_writer.add_delete(objs_to_delete)
+    change_writer.close()

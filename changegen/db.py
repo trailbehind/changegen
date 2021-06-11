@@ -61,6 +61,23 @@ class OGRDBReader(object):
             )
         return _r.GetNextFeature()
 
+    def get_all_ids_for_layer(self, layer, id_fieldname="osm_id"):
+        """
+        Retrieves all unique values of `id_fieldname` within `layer`.
+        """
+        id_query = f"SELECT distinct {id_fieldname} FROM {layer}"
+
+        logging.debug(f"Executing SQL: {id_query}")
+        queryLayer = self.data.ExecuteSQL(id_query)
+        idlist = []
+
+        _id = queryLayer.GetNextFeature()
+        while _id:
+            idlist.append(_id.GetFieldAsString(0))
+            _id = queryLayer.GetNextFeature()
+
+        return idlist
+
     def intersections(
         self,
         new_layer,
