@@ -8,6 +8,7 @@ import psycopg2 as psy
 
 from . import PACKAGE_NAME
 from .generator import generate_changes
+from .generator import generate_deletions
 from .util import setup_logging
 
 """
@@ -79,14 +80,33 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     multiple=True,
 )
 @click.option(
+    "--deletions",
+    help=(
+        "Name of table containing OSM IDs for which <delete> tags "
+        " should be created in the resulting changefile. Table must "
+        " contain <osm_id> column. Can be passed multiple times."
+    ),
+    multiple=True,
+    default=[],
+)
+@click.option(
     "-e",
     "--existing",
     help=(
         "Table of geometries to use when determining whether existing"
         " features must be altered to include linestring intersections."
     ),
-    required=True,
     multiple=True,
+)
+@click.option(
+    "-m",
+    "--modify_meta",
+    help=(
+        "Create <modify> tags in changefile, instead of create nodes "
+        "for all tables specified by --suffix. Only applies to "
+        "Ways with with modified metadata, not geometries (see full help)."
+    ),
+    is_flag=True,
 )
 @click.option("-o", "-outdir", help="Directory to output change files to.", default=".")
 @click.option("--compress", help="gzip-compress xml output", is_flag=True)
@@ -137,6 +157,13 @@ def main(*args: tuple, **kwargs: dict):
     properly represent linestring intersections. The resulting file
     can be applied to a Planet file to alter the file with the
     conflated changes.
+
+    If the tables selected by --suffix do not represent new features
+    but actually represent features with modified metadata, use --modify_meta.
+    NOTE that --modify_meta does not support modified geometries (use default
+    behavior with a --delete table for that).
+    --modify_meta is not compatible with intersection detection. Creation of
+    modify nodes is only compatible with linestring features.
     """
     setup_logging(debug=kwargs["debug"])
     logging.debug(f"Args: {kwargs}")
@@ -168,6 +195,11 @@ def main(*args: tuple, **kwargs: dict):
         )
     logging.info(f"Found tables in db: {new_tables}")
 
+    if kwargs["modify_meta"] and kwargs["existing"]:
+        raise RuntimeError("--modify_meta cannot be used with --existing.")
+    if not kwargs["deletions"] and not kwargs["modify_meta"] and not kwargs["existing"]:
+        raise RuntimeError("Need either --modify_meta or --existing.")
+
     for table in new_tables:
         generate_changes(
             table,
@@ -183,6 +215,21 @@ def main(*args: tuple, **kwargs: dict):
             neg_id=kwargs["neg_id"],
             id_offset=kwargs["id_offset"],
             self_intersections=kwargs["self"],
+            modify_only=kwargs["modify_meta"],
+        )
+
+    for table in kwargs["deletions"]:
+        generate_deletions(
+            table,
+            "osm_id",
+            kwargs["dbname"],
+            kwargs["dbport"],
+            kwargs["dbuser"],
+            kwargs["dbpass"] if kwargs["dbpass"] != "" else None,
+            kwargs["dbhost"],
+            kwargs["osmsrc"],
+            os.path.join(str(kwargs["o"]), f"{table}.osc"),
+            compress=kwargs["compress"],
         )
 
 
