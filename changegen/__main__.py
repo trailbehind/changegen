@@ -71,7 +71,7 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     "-m",
     "--modify_meta",
     help=(
-        "Create <modify> nodes instead of create nodes "
+        "Create <modify> tags in changefile, instead of create nodes "
         "for all tables specified by --suffix. Only applies to "
         "Ways with with modified metadata, not geometries (see full help)."
     ),
