@@ -597,6 +597,22 @@ def generate_changes(
                         max_nodes_per_way=max_nodes_per_way,
                         closed=True,
                     )
+                    # !! If the exterior Way needs to be split into
+                    # multiple Ways (because it's longer than max_nodes_per_way)
+                    # we need to create a relation in addition to the Ways.
+                    multi_way_relation = None
+                    if len(ways) > 0:
+                        logging.debug(
+                            f"Creating Relation for simple polygon with {len(ways)} members."
+                        )
+                        multi_way_relation = Relation(
+                            id=next(ids),
+                            version=1,
+                            members=[
+                                RelationMember(w.id, "way", "outer") for w in ways
+                            ],
+                            tags=ways[0].tags + [Tag("type", "multipolygon")],
+                        )
                     new_nodes.extend(nodes)
                     new_ways.extend(ways)
                     _global_node_id_all_ways.extend(
