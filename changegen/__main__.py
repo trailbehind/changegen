@@ -145,6 +145,7 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
         " If a way exceeds this value "
         " it will be subdivided into smaller ways. Pass `none` for no limit."
     ),
+    default="2000",
 )
 @click.option("--osmsrc", help="Source OSM PBF File path", required=True)
 @click.argument("dbname", default=os.environ.get("PGDATABASE", "conflate"))
