@@ -208,14 +208,11 @@ def main(*args: tuple, **kwargs: dict):
 
     max_nodes_per_way = kwargs["max_nodes_per_way"]
     if str(max_nodes_per_way).lower() == "none":
-        print("setting to inf")
         max_nodes_per_way = math.inf
     elif max_nodes_per_way == None:
         max_nodes_per_way = 2000
     if kwargs["modify_meta"] and kwargs["existing"]:
         raise RuntimeError("--modify_meta cannot be used with --existing.")
-    if not kwargs["deletions"] and not kwargs["modify_meta"] and not kwargs["existing"]:
-        raise RuntimeError("Need either --modify_meta or --existing.")
 
     for table in new_tables:
         generate_changes(
@@ -233,7 +230,7 @@ def main(*args: tuple, **kwargs: dict):
             neg_id=kwargs["neg_id"],
             id_offset=kwargs["id_offset"],
             self_intersections=kwargs["self"],
-            max_nodes_per_way=max_nodes_per_way,
+            max_nodes_per_way=int(max_nodes_per_way),
             modify_only=kwargs["modify_meta"],
         )
 
