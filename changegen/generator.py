@@ -350,6 +350,24 @@ def _modify_existing_way(way_geom, way_id, nodes, tags, intersection_db):
     return w
 
 
+def _generate_relation_for_ways(ways, idgen, tags):
+    """
+    Produce a Relation representing all Ways.
+
+    Adds Tags to relation.
+    """
+    multi_way_relation = None
+
+    logging.debug(f"Creating Relation with {len(ways)} members.")
+    multi_way_relation = Relation(
+        id=next(idgen),
+        version=1,
+        members=[RelationMember(w.id, "way", "outer") for w in ways],
+        tags=tags,
+    )
+    return multi_way_relation
+
+
 def _generate_ways_and_nodes(
     geom,
     idgen,
@@ -376,7 +394,6 @@ def _generate_ways_and_nodes(
     `nds` list of the newly-created Way.
 
     """
-
     nodes = []
     node_ids_for_way = []
     for (x, y) in geom.coords:
@@ -519,7 +536,6 @@ def generate_changes(
     projection = pyproj.Transformer.from_crs(
         pyproj.CRS(f"EPSG:{layer_epsg}"), WGS84, always_xy=True
     ).transform
-
     ## If we're creating "modify" nodes instead of create nodes,
     ## we need to go get the IDs of the nodes that make up
     ## any Ways that will be modified. Currently this only
@@ -574,7 +590,6 @@ def generate_changes(
             ## in the table, we just create a new Way with existing ID and nodes and new tags.
 
             ## NOTE that modify_only does not support modifying geometries.
-
             if modify_only:
                 existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
 
@@ -597,27 +612,20 @@ def generate_changes(
                         max_nodes_per_way=max_nodes_per_way,
                         closed=True,
                     )
-                    # !! If the exterior Way needs to be split into
-                    # multiple Ways (because it's longer than max_nodes_per_way)
-                    # we need to create a relation in addition to the Ways.
-                    multi_way_relation = None
-                    if len(ways) > 0:
-                        logging.debug(
-                            f"Creating Relation for simple polygon with {len(ways)} members."
-                        )
-                        multi_way_relation = Relation(
-                            id=next(ids),
-                            version=1,
-                            members=[
-                                RelationMember(w.id, "way", "outer") for w in ways
-                            ],
-                            tags=ways[0].tags + [Tag("type", "multipolygon")],
-                        )
                     new_nodes.extend(nodes)
                     new_ways.extend(ways)
                     _global_node_id_all_ways.extend(
                         chain.from_iterable([w.nds for w in ways])
                     )
+                    # !! In some cases when the outer ring of the Polygon
+                    # is longer than max_nodes_per_way, we create a Relation
+                    # to represent that way.
+                    if len(ways) > 1:
+                        new_relations.append(
+                            _generate_relation_for_ways(
+                                ways, ids, ways[0].tags + [Tag("type", "multipolygon")]
+                            )
+                        )
                 else:  # more complex polygons (w/ holes) need to be Relations
                     outer_ways, outer_nodes = _generate_ways_and_nodes(
                         # no tags on these ways, they belong on the relation
