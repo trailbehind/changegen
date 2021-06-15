@@ -583,7 +583,7 @@ def generate_changes(
             new_nodes.extend(nodes)
             new_ways.extend(ways)
             _global_node_id_all_ways.extend(chain.from_iterable([w.nds for w in ways]))
-        if isinstance(wgs84_geom, sg.Polygon):
+        elif isinstance(wgs84_geom, sg.Polygon):
             ## If we're taking all features to be newly-created (~modify_only)
             ## we need to create ways and nodes for that feature.
             ## IF we're only modifying existing features with features
