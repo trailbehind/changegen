@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import subprocess
 import sys
@@ -10,6 +11,7 @@ from . import PACKAGE_NAME
 from .generator import generate_changes
 from .generator import generate_deletions
 from .util import setup_logging
+
 
 """
 cli.py
@@ -97,6 +99,7 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
         " features must be altered to include linestring intersections."
     ),
     multiple=True,
+    default=[],
 )
 @click.option(
     "-m",
@@ -134,6 +137,15 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
         "new geometry tables' geometry column before using this option."
     ),
     is_flag=True,
+)
+@click.option(
+    "--max_nodes_per_way",
+    help=(
+        "Number of nodes allowed per way. Default 2000."
+        " If a way exceeds this value "
+        " it will be subdivided into smaller ways. Pass `none` for no limit."
+    ),
+    default="2000",
 )
 @click.option("--osmsrc", help="Source OSM PBF File path", required=True)
 @click.argument("dbname", default=os.environ.get("PGDATABASE", "conflate"))
@@ -195,15 +207,19 @@ def main(*args: tuple, **kwargs: dict):
         )
     logging.info(f"Found tables in db: {new_tables}")
 
+    max_nodes_per_way = kwargs["max_nodes_per_way"]
+    if str(max_nodes_per_way).lower() == "none":
+        max_nodes_per_way = math.inf
+    elif max_nodes_per_way == None:
+        max_nodes_per_way = 2000
     if kwargs["modify_meta"] and kwargs["existing"]:
         raise RuntimeError("--modify_meta cannot be used with --existing.")
-    if not kwargs["deletions"] and not kwargs["modify_meta"] and not kwargs["existing"]:
-        raise RuntimeError("Need either --modify_meta or --existing.")
 
     for table in new_tables:
         generate_changes(
             table,
             kwargs["existing"],
+            kwargs["deletions"],
             kwargs["dbname"],
             kwargs["dbport"],
             kwargs["dbuser"],
@@ -215,6 +231,7 @@ def main(*args: tuple, **kwargs: dict):
             neg_id=kwargs["neg_id"],
             id_offset=kwargs["id_offset"],
             self_intersections=kwargs["self"],
+            max_nodes_per_way=int(max_nodes_per_way),
             modify_only=kwargs["modify_meta"],
         )
 

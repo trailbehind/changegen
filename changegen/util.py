@@ -1,5 +1,7 @@
 import logging
 
+import click
+
 
 def setup_logging(debug=False):
     """ Setup logging, mostly hiding logging from third party libraries. """

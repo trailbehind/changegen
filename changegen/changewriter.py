@@ -41,6 +41,8 @@ OSMCHANGE_GENERATOR = f"osmchangewriter (Python {sys.version_info.major}.{sys.ve
 Tag = namedtuple("Tag", "key,value")
 Node = namedtuple("Node", "id, version, lat, lon, tags")
 Way = namedtuple("Way", "id, version, nds, tags")
+Relation = namedtuple("Relation", "id, version, members, tags")
+RelationMember = namedtuple("RelationMember", "ref, type, role")
 
 
 def write_osm_object(osm, writer):
@@ -54,10 +56,15 @@ def write_osm_object(osm, writer):
     try:
         attrs = dict(osm._asdict())
         objtype = type(osm).__name__.lower()
+        # we don't want to write tags, nds, or members in the main element
+        # for objects. They'll get written as child elements below.
         attrs.pop("tags")
         if hasattr(osm, "nds"):
             attrs.pop("nds")
+        if hasattr(osm, "members"):
+            attrs.pop("members")
         attrs = {k: str(attrs[k]) for k in attrs.keys()}
+
         with writer.element(objtype, **attrs):
             # special cases for objects with
             # <tags> or <nds> (ways). Write as sub-elems
@@ -67,6 +74,16 @@ def write_osm_object(osm, writer):
             if hasattr(osm, "nds"):
                 for nd in osm.nds:
                     writer.write(etree.Element("nd", ref=str(nd)))
+            if hasattr(osm, "members"):
+                for member in osm.members:
+                    writer.write(
+                        etree.Element(
+                            "member",
+                            ref=str(member.ref),
+                            type=member.type,
+                            role=member.role,
+                        )
+                    )
             writer.flush()
     except AttributeError:
         raise RuntimeError(f"OSM Object {osm} is malformed.")
