@@ -128,8 +128,52 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="test-test-db-module">
-<h2>test.test_db module<a class="headerlink" href="#test-test-db-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-test.test_db">
+<span id="test-test-db-module"></span><h2>test.test_db module<a class="headerlink" href="#module-test.test_db" title="Permalink to this headline">¶</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="test.test_db.DBHOST">
+<span class="sig-prename descclassname"><span class="pre">test.test_db.</span></span><span class="sig-name descname"><span class="pre">DBHOST</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'localhost'</span></em><a class="headerlink" href="#test.test_db.DBHOST" title="Permalink to this definition">¶</a></dt>
+<dd><p>These tests require a Postgres database to be running locally.</p>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="test.test_db.TestDB">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">test.test_db.</span></span><span class="sig-name descname"><span class="pre">TestDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.test_db.TestDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_db.TestDB.test_connect">
+<span class="sig-name descname"><span class="pre">test_connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_db.TestDB.test_connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_db.TestDB.test_fail">
+<span class="sig-name descname"><span class="pre">test_fail</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_db.TestDB.test_fail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure failure to connect to datasource with nonexistent_user</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_db.TestDB.test_generator">
+<span class="sig-name descname"><span class="pre">test_generator</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_db.TestDB.test_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test layer generator</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_db.TestDB.test_get_layers">
+<span class="sig-name descname"><span class="pre">test_get_layers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_db.TestDB.test_get_layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that get_layers() returns a list.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_db.TestDB.test_id_return">
+<span class="sig-name descname"><span class="pre">test_id_return</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_db.TestDB.test_id_return" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_db.TestDB.test_self_intersection">
+<span class="sig-name descname"><span class="pre">test_self_intersection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_db.TestDB.test_self_intersection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sanity-check on intersections
+such that there should always be at least 1
+intersection among a feature and it’s source layer</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_db.TestDB.test_self_intersection_returns_intersection_point">
+<span class="sig-name descname"><span class="pre">test_self_intersection_returns_intersection_point</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_db.TestDB.test_self_intersection_returns_intersection_point" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+</dd></dl>
 </section>
 <section id="test-test-generator-module">
 <h2>test.test_generator module<a class="headerlink" href="#test-test-generator-module" title="Permalink to this headline">¶</a></h2>
@@ -229,7 +273,7 @@
             <ul>
 <li><a class="reference internal" href="#">test package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#test-test-db-module">test.test_db module</a></li>
+<li><a class="reference internal" href="#module-test.test_db">test.test_db module</a></li>
 <li><a class="reference internal" href="#test-test-generator-module">test.test_generator module</a></li>
 <li><a class="reference internal" href="#module-test.test_writer">test.test_writer module</a></li>
 <li><a class="reference internal" href="#module-test">Module contents</a></li>

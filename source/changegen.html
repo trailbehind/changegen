@@ -293,8 +293,57 @@ to determine the type of XML element to write.</p>
 <p>Creates child elements for each Tag or nd (node ref)</p>
 </dd></dl>
 </section>
-<section id="changegen-db-module">
-<h2>changegen.db module<a class="headerlink" href="#changegen-db-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-changegen.db">
+<span id="changegen-db-module"></span><h2>changegen.db module<a class="headerlink" href="#module-changegen.db" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">changegen.db.</span></span><span class="sig-name descname"><span class="pre">OGRDBReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbuser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbhost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Read features from PostGIS database via OGR.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_all_ids_for_layer">
+<span class="sig-name descname"><span class="pre">get_all_ids_for_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_fieldname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'osm_id'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_all_ids_for_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all unique values of <cite>id_fieldname</cite> within <cite>layer</cite>.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_feature_by_id">
+<span class="sig-name descname"><span class="pre">get_feature_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_field</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_feature_by_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_layer_epsg">
+<span class="sig-name descname"><span class="pre">get_layer_epsg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_layer_epsg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_layer_fields">
+<span class="sig-name descname"><span class="pre">get_layer_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_layer_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get field names from layer</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_layer_iter">
+<span class="sig-name descname"><span class="pre">get_layer_iter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_layer_iter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return generator over features in layer</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_layers">
+<span class="sig-name descname"><span class="pre">get_layers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return available layers from db connection.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_num_features">
+<span class="sig-name descname"><span class="pre">get_num_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_num_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.intersections">
+<span class="sig-name descname"><span class="pre">intersections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersecting_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_geometry_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'geometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersecting_geometry_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'geometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersecting_id_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'osm_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.intersections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves intersections between new_layer and intersecting_layer.</p>
+<p>Actually returns the nearest points on new_layer features that are within
+&lt;distance_buffer&gt; from features in intersecting_geometry_field</p>
+<p>if ids = True, optionally returns a list of feature IDs from the intersecting layer`
+that represent the intersecting features in intersecting_layer
+with intersections to features in new_layer.</p>
+<p>returns ogr.Layer</p>
+</dd></dl>
+</dd></dl>
 </section>
 <section id="changegen-generator-module">
 <h2>changegen.generator module<a class="headerlink" href="#changegen-generator-module" title="Permalink to this headline">¶</a></h2>
@@ -345,7 +394,7 @@ to determine the type of XML element to write.</p>
 <li><a class="reference internal" href="#">changegen package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-changegen.changewriter">changegen.changewriter module</a></li>
-<li><a class="reference internal" href="#changegen-db-module">changegen.db module</a></li>
+<li><a class="reference internal" href="#module-changegen.db">changegen.db module</a></li>
 <li><a class="reference internal" href="#changegen-generator-module">changegen.generator module</a></li>
 <li><a class="reference internal" href="#module-changegen.util">changegen.util module</a></li>
 <li><a class="reference internal" href="#module-changegen">Module contents</a></li>
