@@ -61,4 +61,5 @@ autodoc_mock_imports = [
     "osmium",
     "osgeo",
     "ogr",
+    "numpy",
 ]

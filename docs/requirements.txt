@@ -1,5 +1,5 @@
 sphinx
-sphinx_click
+sphinx-click
 furo
 autodoc
 click
