@@ -59,4 +59,6 @@ autodoc_mock_imports = [
     "pyproj",
     "rtree",
     "osmium",
+    "osgeo",
+    "ogr",
 ]
