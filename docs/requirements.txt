@@ -3,9 +3,3 @@ sphinx_click
 furo
 autodoc
 click
-tqdm
-gdal
-lxml
-psycopg2
-rtree
-osmium
