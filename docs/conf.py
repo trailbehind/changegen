@@ -25,7 +25,7 @@ author = "`Gaia GPS <https://www.gaiagps.com/map>`_ / `Outside Interactive Inc. 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.coverage"]
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.coverage", "sphinx_click.ext"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
