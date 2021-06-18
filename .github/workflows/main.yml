@@ -1,10 +1,10 @@
 name: Build Sphinx to Github Pages
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-      - **doc**
 
 jobs:
   deploy:
