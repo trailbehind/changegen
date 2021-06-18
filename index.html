@@ -1,0 +1,224 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
+
+    <meta name="generator" content="sphinx-4.0.2, furo 2021.06.18.beta36"/>
+        <title>Home - changegen documentation</title>
+      <link rel="stylesheet" href="_static/styles/furo.css?digest=9b17055c4366e8b2949c66d6a9d8b0efe4dbaa60">
+    <link rel="stylesheet" href="_static/pygments.css">
+    
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css" />
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css">
+    <link rel="stylesheet" href="_static/styles/furo-extensions.css?digest=ee12cdd73c4bbac24afec78d92c4afd7c2d8ea7f"></head>
+  <body dir="">
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="#"><div class="brand">changegen  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="#">
+  
+  
+  <span class="sidebar-brand-text">changegen  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <section id="changegen-osm-changefiles-from-postgis-tables">
+<h1><code class="docutils literal notranslate"><span class="pre">changegen</span></code>: <a class="reference external" href="https://wiki.openstreetmap.org/wiki/OsmChange">OSM Changefiles</a> from PostGIS Tables<a class="headerlink" href="#changegen-osm-changefiles-from-postgis-tables" title="Permalink to this headline">¶</a></h1>
+<p>Many workflows based on OpenStreetMap data use PostGIS to enable spatial operations on these data at planetary scale. Expressing modifications, additions, or deletions to these data is sometimes necessary: for example, to communicate those changes to another system or workflow without access to the PostGIS instance.</p>
+<p><code class="docutils literal notranslate"><span class="pre">changegen</span></code> is a command line utilty that creates (optionally gzipped) <a class="reference external" href="https://wiki.openstreetmap.org/wiki/OsmChange">OSM Changefiles</a> from PostGIS tables. Changefiles can then be applied to existing OSM extracts to create new extracts containing the modifications described in the changefile.</p>
+<section id="things-changegen-can-do">
+<h2>Things <code class="docutils literal notranslate"><span class="pre">changegen</span></code> can do:<a class="headerlink" href="#things-changegen-can-do" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Translate from PostGIS <code class="docutils literal notranslate"><span class="pre">GEOMETRY</span></code> tp OpenStreetMap XML formats (<code class="docutils literal notranslate"><span class="pre">Ways</span></code>, <code class="docutils literal notranslate"><span class="pre">Nodes</span></code>, <code class="docutils literal notranslate"><span class="pre">Relations</span></code>). (<strong>NB</strong>: Only <code class="docutils literal notranslate"><span class="pre">Polygon</span></code> and <code class="docutils literal notranslate"><span class="pre">LineString</span></code> data types are currently supported).</p></li>
+<li><p><strong>Create</strong> new <code class="docutils literal notranslate"><span class="pre">Polygons</span></code> (e.g. closed <code class="docutils literal notranslate"><span class="pre">Ways</span></code> or <code class="docutils literal notranslate"><span class="pre">Relations</span></code>) or <code class="docutils literal notranslate"><span class="pre">LineStrings</span></code> (<code class="docutils literal notranslate"><span class="pre">Ways</span></code> and <code class="docutils literal notranslate"><span class="pre">Nodes</span></code>) from objects in PostGIS tables, with corresponding schema as OSM tags</p></li>
+<li><p><strong>Ensure</strong> that new Ways are properly “network-noded” : e.g. that they share nodes at intersections with both <em>existing</em> and <em>new</em> geometries. This is important for e.g. ensuring accurate network topology. This also includes modifying <em>existing</em> <code class="docutils literal notranslate"><span class="pre">Ways</span></code> to include these noded intersections. (<strong>NB</strong>: Intersections with <code class="docutils literal notranslate"><span class="pre">Polygon</span></code> objects is not currently supported.)</p></li>
+<li><p><strong>Modify</strong> the metadata of <code class="docutils literal notranslate"><span class="pre">Ways</span></code> in an existing OSM extract.</p></li>
+<li><p><strong>Delete</strong> any OSM object specified by an <code class="docutils literal notranslate"><span class="pre">osm_id</span></code> column in a PostGIS table.</p></li>
+</ul>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">changegen</span></code> is not available on <code class="docutils literal notranslate"><span class="pre">pip</span></code> but is <code class="docutils literal notranslate"><span class="pre">pip</span></code> -installable:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/trailbehind/changegen.git
+pip install -e changegen
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">changegen</span></code> depends on: <code class="docutils literal notranslate"><span class="pre">click</span></code>, <code class="docutils literal notranslate"><span class="pre">tqdm</span></code>, <code class="docutils literal notranslate"><span class="pre">osmium</span></code>, <code class="docutils literal notranslate"><span class="pre">shapely</span></code>, <code class="docutils literal notranslate"><span class="pre">gdal</span></code>, <code class="docutils literal notranslate"><span class="pre">lxml</span></code>, <code class="docutils literal notranslate"><span class="pre">psycopg2</span></code>, <code class="docutils literal notranslate"><span class="pre">pyproj</span></code>, and <code class="docutils literal notranslate"><span class="pre">rtree</span></code>.</p>
+</section>
+<section id="command-line-usage">
+<h2>Command Line Usage<a class="headerlink" href="#command-line-usage" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">changegen</span></code> utility requires access to a PostGIS database. It has two primary “modes:” <em>create</em> and <em>modify</em>. They are mutually-exclusive: that is, modifications cannot be specified during the same invocation as creation. (To get around this limitation, you can create multiple <code class="docutils literal notranslate"><span class="pre">.osc</span></code> files and merge them with <a class="reference external" href="https://wiki.openstreetmap.org/wiki/Osmosis">osmosis</a>). Create mode is enabled by default. To use modify mode, pass the <code class="docutils literal notranslate"><span class="pre">--modify_only</span></code> flag, documented below. To enable the creation of deletions in the OSM Changefile output, provide the names of PostGIS tables containing an <code class="docutils literal notranslate"><span class="pre">osm_id</span></code> column of IDs to delete with <code class="docutils literal notranslate"><span class="pre">--deletions</span></code>.</p>
+<section id="detailed-usage">
+<h3>Detailed Usage<a class="headerlink" href="#detailed-usage" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+
+        <div class="related-information">
+            |
+            <a class="muted-link" href="_sources/index.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">changegen</span></code>: OSM Changefiles from PostGIS Tables</a><ul>
+<li><a class="reference internal" href="#things-changegen-can-do">Things <code class="docutils literal notranslate"><span class="pre">changegen</span></code> can do:</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#command-line-usage">Command Line Usage</a><ul>
+<li><a class="reference internal" href="#detailed-usage">Detailed Usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </main>
+</div>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+</html>
