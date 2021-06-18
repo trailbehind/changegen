@@ -128,8 +128,170 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="changegen-changewriter-module">
-<h2>changegen.changewriter module<a class="headerlink" href="#changegen-changewriter-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-changegen.changewriter">
+<span id="changegen-changewriter-module"></span><h2>changegen.changewriter module<a class="headerlink" href="#module-changegen.changewriter" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="changegen.changewriter.Node">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">changegen.changewriter.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.Node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Node.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#changegen.changewriter.Node.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Node.lat">
+<span class="sig-name descname"><span class="pre">lat</span></span><a class="headerlink" href="#changegen.changewriter.Node.lat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Node.lon">
+<span class="sig-name descname"><span class="pre">lon</span></span><a class="headerlink" href="#changegen.changewriter.Node.lon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Node.tags">
+<span class="sig-name descname"><span class="pre">tags</span></span><a class="headerlink" href="#changegen.changewriter.Node.tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Node.version">
+<span class="sig-name descname"><span class="pre">version</span></span><a class="headerlink" href="#changegen.changewriter.Node.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="changegen.changewriter.OSMChangeWriter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">changegen.changewriter.</span></span><span class="sig-name descname"><span class="pre">OSMChangeWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.OSMChangeWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Write OSMChange format
+(<a class="reference external" href="https://wiki.openstreetmap.org/wiki/OsmChange">https://wiki.openstreetmap.org/wiki/OsmChange</a>)
+to file_like object. close() MUST be called
+to ensure compliance with XML schema.</p>
+<p>Provides support for modify and add tags currently,
+with support for Node, Way, and Tag OSM
+elements (defined above.)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.changewriter.OSMChangeWriter.add_create">
+<span class="sig-name descname"><span class="pre">add_create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementlist</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.OSMChangeWriter.add_create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates &lt;create&gt; element containing
+all elements in elementlist.</p>
+<p><strong>NOTE</strong>: does <em>not</em> ensure that &lt;node&gt;
+elements are added for every &lt;node&gt; in any
+Ways in the elementlist.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.changewriter.OSMChangeWriter.add_delete">
+<span class="sig-name descname"><span class="pre">add_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementlist</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.OSMChangeWriter.add_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a &lt;delete&gt; element containing
+all elements in elementlist</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.changewriter.OSMChangeWriter.add_modify">
+<span class="sig-name descname"><span class="pre">add_modify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elementlist</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.OSMChangeWriter.add_modify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates &lt;modify&gt; element containing
+all elements in elementlist.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.changewriter.OSMChangeWriter.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.OSMChangeWriter.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the &lt;osmChange&gt; closing tag and close the file.</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="changegen.changewriter.Relation">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">changegen.changewriter.</span></span><span class="sig-name descname"><span class="pre">Relation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">members</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.Relation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Relation.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#changegen.changewriter.Relation.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Relation.members">
+<span class="sig-name descname"><span class="pre">members</span></span><a class="headerlink" href="#changegen.changewriter.Relation.members" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Relation.tags">
+<span class="sig-name descname"><span class="pre">tags</span></span><a class="headerlink" href="#changegen.changewriter.Relation.tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Relation.version">
+<span class="sig-name descname"><span class="pre">version</span></span><a class="headerlink" href="#changegen.changewriter.Relation.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="changegen.changewriter.RelationMember">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">changegen.changewriter.</span></span><span class="sig-name descname"><span class="pre">RelationMember</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">role</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.RelationMember" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.RelationMember.ref">
+<span class="sig-name descname"><span class="pre">ref</span></span><a class="headerlink" href="#changegen.changewriter.RelationMember.ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.RelationMember.role">
+<span class="sig-name descname"><span class="pre">role</span></span><a class="headerlink" href="#changegen.changewriter.RelationMember.role" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.RelationMember.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#changegen.changewriter.RelationMember.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="changegen.changewriter.Tag">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">changegen.changewriter.</span></span><span class="sig-name descname"><span class="pre">Tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.Tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Tag.key">
+<span class="sig-name descname"><span class="pre">key</span></span><a class="headerlink" href="#changegen.changewriter.Tag.key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Tag.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#changegen.changewriter.Tag.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="changegen.changewriter.Way">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">changegen.changewriter.</span></span><span class="sig-name descname"><span class="pre">Way</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.Way" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Way.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#changegen.changewriter.Way.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Way.nds">
+<span class="sig-name descname"><span class="pre">nds</span></span><a class="headerlink" href="#changegen.changewriter.Way.nds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Way.tags">
+<span class="sig-name descname"><span class="pre">tags</span></span><a class="headerlink" href="#changegen.changewriter.Way.tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="changegen.changewriter.Way.version">
+<span class="sig-name descname"><span class="pre">version</span></span><a class="headerlink" href="#changegen.changewriter.Way.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="changegen.changewriter.write_osm_object">
+<span class="sig-prename descclassname"><span class="pre">changegen.changewriter.</span></span><span class="sig-name descname"><span class="pre">write_osm_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">osm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.changewriter.write_osm_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes an OSM object (Node, Way)
+as an XML object. Uses the type of the
+namedtuple representing each OSM object
+to determine the type of XML element to write.</p>
+<p>Creates child elements for each Tag or nd (node ref)</p>
+</dd></dl>
 </section>
 <section id="changegen-db-module">
 <h2>changegen.db module<a class="headerlink" href="#changegen-db-module" title="Permalink to this headline">¶</a></h2>
@@ -182,7 +344,7 @@
             <ul>
 <li><a class="reference internal" href="#">changegen package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#changegen-changewriter-module">changegen.changewriter module</a></li>
+<li><a class="reference internal" href="#module-changegen.changewriter">changegen.changewriter module</a></li>
 <li><a class="reference internal" href="#changegen-db-module">changegen.db module</a></li>
 <li><a class="reference internal" href="#changegen-generator-module">changegen.generator module</a></li>
 <li><a class="reference internal" href="#module-changegen.util">changegen.util module</a></li>

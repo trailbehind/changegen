@@ -134,8 +134,63 @@
 <section id="test-test-generator-module">
 <h2>test.test_generator module<a class="headerlink" href="#test-test-generator-module" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="test-test-writer-module">
-<h2>test.test_writer module<a class="headerlink" href="#test-test-writer-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-test.test_writer">
+<span id="test-test-writer-module"></span><h2>test.test_writer module<a class="headerlink" href="#module-test.test_writer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">test.test_writer.</span></span><span class="sig-name descname"><span class="pre">TestWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<p>Test OSMChangeWriter</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_close">
+<span class="sig-name descname"><span class="pre">test_close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure close() function correctly adds osmChange tags</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_compression">
+<span class="sig-name descname"><span class="pre">test_compression</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_compression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test compression</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_create_multiple">
+<span class="sig-name descname"><span class="pre">test_create_multiple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_create_multiple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure a multiple modify nodes are written correctly</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_create_node">
+<span class="sig-name descname"><span class="pre">test_create_node</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_create_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure a single create node is written correctly</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_create_relation">
+<span class="sig-name descname"><span class="pre">test_create_relation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_create_relation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_create_way">
+<span class="sig-name descname"><span class="pre">test_create_way</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_create_way" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure a single create node is written correctly</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_modify_multiple">
+<span class="sig-name descname"><span class="pre">test_modify_multiple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_modify_multiple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure a multiple modify nodes are written correctly</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_modify_node">
+<span class="sig-name descname"><span class="pre">test_modify_node</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_modify_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure a single modify node is written correctly</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_modify_way">
+<span class="sig-name descname"><span class="pre">test_modify_way</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_modify_way" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure a single modify way is written correctly</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.test_writer.TestWriter.test_write_file">
+<span class="sig-name descname"><span class="pre">test_write_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.test_writer.TestWriter.test_write_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure that providing a filename to OSMChangeWriter produces a file</p>
+</dd></dl>
+</dd></dl>
 </section>
 <section id="module-test">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-test" title="Permalink to this headline">¶</a></h2>
@@ -176,7 +231,7 @@
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#test-test-db-module">test.test_db module</a></li>
 <li><a class="reference internal" href="#test-test-generator-module">test.test_generator module</a></li>
-<li><a class="reference internal" href="#test-test-writer-module">test.test_writer module</a></li>
+<li><a class="reference internal" href="#module-test.test_writer">test.test_writer module</a></li>
 <li><a class="reference internal" href="#module-test">Module contents</a></li>
 </ul>
 </li>
