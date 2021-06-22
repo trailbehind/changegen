@@ -811,7 +811,7 @@ def generate_deletions(
     osmsrc,
     outfile,
     compress=True,
-    skip_nodes=False,
+    skip_nodes=True,
 ):
     """
     Produce a changefile with <delete> nodes for all IDs in table.
