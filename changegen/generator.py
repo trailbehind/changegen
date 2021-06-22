@@ -30,6 +30,13 @@ WEBMERC = pyproj.CRS("EPSG:3857")
 COORDINATE_PRECISION = 6
 WAY_POINT_THRESHOLD = 1500
 
+__doc__ = """
+
+``changegen.generator`` Module
+==============================
+
+"""
+
 
 def _get_way_node_map(osm, way_idlist):
     """Returns a dictionary of osm_id : [node_ids]

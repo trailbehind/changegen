@@ -3,6 +3,16 @@ import warnings
 
 from osgeo import ogr
 
+__doc__ = """
+
+``changegen.db`` Module
+=======================
+
+This is some docuemtnation
+
+
+"""
+
 
 class OGRDBReader(object):
     """Read features from PostGIS database via OGR."""

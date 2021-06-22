@@ -2,6 +2,13 @@ import logging
 
 import click
 
+__doc__ = """
+
+``changegen.util`` Module
+=========================
+
+"""
+
 
 def setup_logging(debug=False):
     """ Setup logging, mostly hiding logging from third party libraries. """

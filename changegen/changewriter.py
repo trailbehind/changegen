@@ -11,26 +11,14 @@ from shutil import copyfileobj
 
 from lxml import etree
 
-"""
-changewriter.py
+__doc__ = """
 
-tony@gaiagps.com
+``changegen.changewriter`` Module
+=================================
 
 Module for writing OSMChange files
 (https://wiki.openstreetmap.org/wiki/OsmChange).
 
-Data Types:
-    Tag (namedtuple): key, value
-    Node (namedtuple): id, version, lat, lon, tags (array of Tags)
-    Way (namedtuple): id, version, nds (array of Node ids [ints]),
-        tags (array of Tags)
-
-Classes:
-    OSMChangeWriter: writes XML changefile
-
-Functions:
-    write_osm_object: _private_ helper function to write osm object to
-    OSMChangeWriter.
 
 """
 
