@@ -32,24 +32,13 @@ Installation
 ``changegen`` depends on: ``click``, ``tqdm``, ``osmium``, ``shapely``, ``gdal``, ``lxml``, ``psycopg2``, ``pyproj``, and ``rtree``.
 
 
-Command Line Usage
-------------------
-
-The ``changegen`` utility requires access to a PostGIS database. It has two primary "modes:" *create* and *modify*. They are mutually-exclusive: that is, modifications cannot be specified during the same invocation as creation. (To get around this limitation, you can create multiple ``.osc`` files and merge them with `osmosis <https://wiki.openstreetmap.org/wiki/Osmosis>`_). Create mode is enabled by default. To use modify mode, pass the ``--modify_only`` flag, documented below. To enable the creation of deletions in the OSM Changefile output, provide the names of PostGIS tables containing an ``osm_id`` column of IDs to delete with ``--deletions``. 
-
-Detailed Usage
-^^^^^^^^^^^^^^
-
-
-
-.. click:: changegen:main
-   :prog: changegen
-   :nested: full
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   cli
+   postgis
+   source/changegen
 
 Indices and tables
 ==================
