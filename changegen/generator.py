@@ -683,7 +683,7 @@ def generate_changes(
 
         ## Relation Updates: If modify_relations is true,
         ## we'll search through all newly-added objects
-        ## for Tags with the "relation_member" prefix
+        ## for Tags with prefix specified by `relation_member_prefix`
         ## and add them to the relations specified by the
         ## values of those tags.
         modified_relations = []
