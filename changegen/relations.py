@@ -86,6 +86,9 @@ def modify_relations_with_object(
     we add a RelationMember to the relation representing `osm_object`
     and update the database.
 
+    This function is not a "pure" function -- it modifies underlying state
+    without returning anything.
+
     Relations that are not found in RELATIONS_DB are skipped.
 
     NOTE that this function does not support Roles.
@@ -96,8 +99,7 @@ def modify_relations_with_object(
     for all Relations that are referred-to by Tags in the OSM objects to be
     inserted.
 
-    NOTE that this function, in addition to returning modified Relations,
-    also modifies the underlying relation
+
 
     """
 
@@ -140,6 +142,7 @@ def modify_relations_with_object(
             )
             continue
 
+        # create a new RelationMember containing the new object
         objectMember = RelationMember(
             ref=osm_object.id,
             type=type(osm_object)
@@ -148,6 +151,7 @@ def modify_relations_with_object(
             role="",
         )
 
+        # create a new relation containing the new member.
         new_relation = Relation(
             id=existing_relation.id,
             version=existing_relation.version,
@@ -163,11 +167,9 @@ def modify_relations_with_object(
 
 def get_relations(ids: List[str], osm_filepath: str) -> Dict[str, Relation]:
     """
-    Creates a global a mapping of OSM IDs to Relation objects for each relation
+    Creates an internal mapping of OSM IDs to Relation objects for each relation
     in the OSM file that's specified by `osm_filepath`
     that is specified in `ids`.
-
-    This function also sets the global variable `RELATIONS_DB`.
 
     """
 
