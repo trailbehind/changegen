@@ -147,6 +147,27 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     ),
     default="2000",
 )
+@click.option(
+    "--modify_relations",
+    is_flag=True,
+    help=(
+        "Add new objects to parent relations specified by a special tag.  "
+        'The default tag prefix for tags containing Relation IDs is "_member_of_". '
+        "Pass the --relation_member_prefix flag to change "
+        "this prefix, e.g. --relation_member_prefix __a_different_prefix_. "
+        "See changegen.relations.py for more information. "
+    ),
+)
+@click.option(
+    "--relation_member_prefix",
+    is_flag=False,
+    help=(
+        "Only used with --modify_relations. Specify the tag prefix "
+        "used to search for IDs to to add new OSM objects to."
+    ),
+    default="_member_of_",
+    show_default=True,
+)
 @click.option("--osmsrc", help="Source OSM PBF File path", required=True)
 @click.argument("dbname", default=os.environ.get("PGDATABASE", "conflate"))
 @click.argument("dbport", default=os.environ.get("PGPORT", "15432"))
@@ -233,6 +254,8 @@ def main(*args: tuple, **kwargs: dict):
             self_intersections=kwargs["self"],
             max_nodes_per_way=int(max_nodes_per_way),
             modify_only=kwargs["modify_meta"],
+            modify_relations=kwargs["modify_relations"],
+            relation_member_prefix=kwargs["relation_member_prefix"],
         )
 
     for table in kwargs["deletions"]:

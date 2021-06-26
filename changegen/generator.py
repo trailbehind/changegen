@@ -24,6 +24,9 @@ from .changewriter import RelationMember
 from .changewriter import Tag
 from .changewriter import Way
 from .db import OGRDBReader
+from .relations import get_modified_relations
+from .relations import get_relations
+from .relations import modify_relations_with_object
 
 WGS84 = pyproj.CRS("EPSG:4326")
 WEBMERC = pyproj.CRS("EPSG:3857")
@@ -483,6 +486,8 @@ def generate_changes(
     self_intersections=False,
     max_nodes_per_way=2000,
     modify_only=False,
+    modify_relations=False,
+    relation_member_prefix="_member_of",
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -676,6 +681,32 @@ def generate_changes(
         else:
             raise RuntimeError(f"{type(wgs84_geom)} is not LineString or Polygon")
 
+        ## Relation Updates: If modify_relations is true,
+        ## we'll search through all newly-added objects
+        ## for Tags with the "relation_member" prefix
+        ## and add them to the relations specified by the
+        ## values of those tags.
+        modified_relations = []
+        if modify_relations:
+            relations_mentioned = set()
+            for obj in new_ways + new_nodes + new_relations:
+                relations_mentioned.update(
+                    [
+                        _t.value
+                        for _t in obj.tags
+                        if _t.key.startswith(relation_member_prefix)
+                    ]
+                )
+            # create relations DB
+            get_relations(relations_mentioned, osmsrc)
+            # update db for each new object
+            for obj in tqdm(
+                new_ways + new_nodes + new_relations, desc="Updating relations..."
+            ):
+                modify_relations_with_object(obj, relation_member_prefix)
+            # get modified relations
+            modified_relations = get_modified_relations()
+
         ## Write new ways and nodes to file
         if len(new_ways) > 0 or len(new_nodes) > 0:
             if modify_only:
@@ -684,6 +715,9 @@ def generate_changes(
                 change_writer.add_create(new_nodes + new_ways)
         if len(new_relations) > 0:
             change_writer.add_create(new_relations)
+        ## Write modified relations too.
+        if modify_relations and len(modified_relations) > 0:
+            change_writer.add_modify(modified_relations)
 
     # Write all modified ways with intersections
     # Because we have to re-generate nodes for all points
