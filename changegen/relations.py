@@ -145,9 +145,9 @@ def modify_relations_with_object(
         # create a new RelationMember containing the new object
         objectMember = RelationMember(
             ref=osm_object.id,
-            type=type(osm_object)
-            .__name__[0]
-            .lower(),  # Node --> 'n', Way --> 'w', 'Relation' -> 'r',
+            type=type(
+                osm_object
+            ).__name__.lower(),  # Node --> 'node', Way --> 'way', 'Relation' -> 'relation',
             role="",
         )
 

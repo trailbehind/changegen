@@ -9,7 +9,7 @@ test_relation_db = {
     test_relation_id: changewriter.Relation(
         id=test_relation_id,
         version="-1",
-        members=[changewriter.RelationMember("-1", type="w", role="")],
+        members=[changewriter.RelationMember("-1", type="way", role="")],
         tags=changewriter.Tag(key="tagkey", value="tagvalue"),
     )
 }
@@ -56,7 +56,7 @@ class TestRelations(unittest.TestCase):
 
         modified_relations = relations.get_modified_relations()
 
-        self.assertTrue(modified_relations[0].members[1].type == "n")
+        self.assertTrue(modified_relations[0].members[1].type == "node")
         self.assertTrue(
             modified_relations[0].members[1].ref == test_insertion_object.id
         )
