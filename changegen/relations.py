@@ -12,6 +12,9 @@ from .changewriter import RelationMember
 from .changewriter import Tag
 from .changewriter import Way
 
+# whether to use "way" or "w" (etc) for
+# the "type" field of RelationMembers.
+LONG_RELATION_MEMBER_TYPE = True
 
 """
 
@@ -143,11 +146,12 @@ def modify_relations_with_object(
             continue
 
         # create a new RelationMember containing the new object
+        rm_type = type(osm_object).__name__.lower()
+        if not LONG_RELATION_MEMBER_TYPE:
+            rm_type = rm_type[0]
         objectMember = RelationMember(
             ref=osm_object.id,
-            type=type(
-                osm_object
-            ).__name__.lower(),  # Node --> 'node', Way --> 'way', 'Relation' -> 'relation',
+            type=rm_type,
             role="",
         )
 
@@ -189,8 +193,15 @@ def get_relations(ids: List[str], osm_filepath: str) -> Dict[str, Relation]:
         ) -> List[RelationMember]:
             memberList: List[RelationMember] = []
             for member in members:
+                _type = member.type
+                if LONG_RELATION_MEMBER_TYPE:
+                    _type = {
+                        "w": "way",
+                        "n": "node",
+                        "r": "relation",
+                    }[member.type]
                 memberList.append(
-                    RelationMember(ref=member.ref, type=member.type, role=member.role)
+                    RelationMember(ref=member.ref, type=_type, role=member.role)
                 )
             return memberList
 
