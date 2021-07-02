@@ -485,7 +485,7 @@ def generate_changes(
     max_nodes_per_way=2000,
     modify_only=False,
     modify_relations=False,
-    relation_member_prefix="_member_of",
+    relation_tag="_member_of",
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -709,7 +709,7 @@ def generate_changes(
 
     ## Relation Updates: If modify_relations is true,
     ## we'll search through all newly-added objects
-    ## for Tags with prefix specified by `relation_member_prefix`
+    ## for Tags with prefix specified by `relation_tag`
     ## and add them to the relations specified by the
     ## values of those tags.
     modified_relations = []
@@ -718,11 +718,13 @@ def generate_changes(
         relations_mentioned = set()
         for obj in change_writer.created:
             relations_mentioned.update(
-                [
-                    _t.value
-                    for _t in obj.tags
-                    if _t.key.startswith(relation_member_prefix)
-                ]
+                chain.from_iterable(
+                    [
+                        _t.value.split(",")
+                        for _t in obj.tags
+                        if _t.key.startswith(relation_tag)
+                    ]
+                )
             )
         # create relations DB
         updater.get_relations(relations_mentioned, osmsrc)
@@ -731,7 +733,7 @@ def generate_changes(
             change_writer.created,
             desc="Checking objects for relations...",
         ):
-            updater.modify_relations_with_object(obj, relation_member_prefix)
+            updater.modify_relations_with_object(obj, relation_tag)
         # get modified relations
         modified_relations = updater.get_modified_relations()
         ## Write modified relations too.

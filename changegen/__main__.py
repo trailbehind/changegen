@@ -152,20 +152,20 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     is_flag=True,
     help=(
         "Add new objects to parent relations specified by a special tag.  "
-        'The default tag prefix for tags containing Relation IDs is "_member_of_". '
-        "Pass the --relation_member_prefix flag to change "
-        "this prefix, e.g. --relation_member_prefix __a_different_prefix_. "
+        'The default tag prefix for tags containing Relation IDs is "_member_of". '
+        "Pass the --relation_tag flag to change "
+        "this prefix, e.g. --relation_tag __a_different_prefix_. "
         "See changegen.relations.py for more information. "
     ),
 )
 @click.option(
-    "--relation_member_prefix",
+    "--relation_tag",
     is_flag=False,
     help=(
         "Only used with --modify_relations. Specify the tag prefix "
         "used to search for IDs to to add new OSM objects to."
     ),
-    default="_member_of_",
+    default="_member_of",
     show_default=True,
 )
 @click.option("--osmsrc", help="Source OSM PBF File path", required=True)
@@ -255,7 +255,7 @@ def main(*args: tuple, **kwargs: dict):
             max_nodes_per_way=int(max_nodes_per_way),
             modify_only=kwargs["modify_meta"],
             modify_relations=kwargs["modify_relations"],
-            relation_member_prefix=kwargs["relation_member_prefix"],
+            relation_tag=kwargs["relation_tag"],
         )
 
     for table in kwargs["deletions"]:

@@ -1,4 +1,5 @@
 import logging
+from itertools import chain
 from typing import Dict
 from typing import List
 from typing import Set
@@ -36,12 +37,12 @@ Insertion in to Existing Relations
 
 In order to insert an object into an existing relation a particular schema 
 of the input data is required. In particular, any object that is to be inserted
-into a Relation must contain a Tag with a Key that begins with a user-specifiable 
-prefix and a Value that represents the ID of the Relation that the object should be
-inserted into. 
+into a Relation must contain a Tag with a user-specifiable Key
+and a Value that represents a comma-separated list of the IDs of 
+Relations that the object should be inserted into. 
 
 The default Tag Key that is used is `_member_of`. (To use another, pass it as
-the `relation_tag_prefix` argument to `get_modified_relations_for_object`). 
+the `relation_tag` argument to `get_modified_relations_for_object`). 
 
 `modify_relations_with_object` is responsible for modifying a local
 database of Relations with by objects to them, as specified in the object itself. 
@@ -78,14 +79,14 @@ class RelationUpdater(object):
     def modify_relations_with_object(
         self,
         osm_object: Union[Relation, Node, Way],
-        relation_tag_prefix: str = "_member_of_",
+        relation_tag: str = "_member_of",
     ) -> List[Relation]:
         """
 
-        This function interrogates `osm_object` for Tags whose
-        keys begin with `relation_tag_prefix`. For all keys that begin with
-        that prefix, the function searches a database of relations using the values
-        of those tags as the relation ID. For all matching relations
+        This function interrogates `osm_object` for a Tag whose
+        key begins with `relation_tag`. If a matching key is found that begins with
+        that prefix, the function searches a database of relations using the comma-separated
+        values in the Tag as the relation IDs. For all matching relations
         we add a RelationMember to the relation representing `osm_object`
         and update the database.
 
@@ -121,11 +122,13 @@ class RelationUpdater(object):
             )
 
         # search for matching tags that represent relation IDs
-        relation_ids = [
-            tag.value
-            for tag in osm_object.tags
-            if tag.key.startswith(relation_tag_prefix)
-        ]
+        relation_ids = chain.from_iterable(
+            [
+                tag.value.split(",")
+                for tag in osm_object.tags
+                if tag.key.startswith(relation_tag)
+            ]
+        )
         # update each relation with osm_object.
         for relation in relation_ids:
             existing_relation = None
