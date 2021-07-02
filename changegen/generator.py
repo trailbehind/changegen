@@ -24,9 +24,7 @@ from .changewriter import RelationMember
 from .changewriter import Tag
 from .changewriter import Way
 from .db import OGRDBReader
-from .relations import get_modified_relations
-from .relations import get_relations
-from .relations import modify_relations_with_object
+from .relations import RelationUpdater
 
 WGS84 = pyproj.CRS("EPSG:4326")
 WEBMERC = pyproj.CRS("EPSG:3857")
@@ -712,6 +710,7 @@ def generate_changes(
     ## values of those tags.
     modified_relations = []
     if modify_relations:
+        updater = RelationUpdater()
         relations_mentioned = set()
         for obj in chain(new_ways, new_nodes, new_relations):
             relations_mentioned.update(
@@ -722,15 +721,15 @@ def generate_changes(
                 ]
             )
         # create relations DB
-        get_relations(relations_mentioned, osmsrc)
+        updater.get_relations(relations_mentioned, osmsrc)
         # update db for each new object
         for obj in tqdm(
             new_ways + new_nodes + new_relations,
             desc="Checking objects for relations...",
         ):
-            modify_relations_with_object(obj, relation_member_prefix)
+            updater.modify_relations_with_object(obj, relation_member_prefix)
         # get modified relations
-        modified_relations = get_modified_relations()
+        modified_relations = updater.get_modified_relations()
         ## Write modified relations too.
         if len(modified_relations) > 0:
             change_writer.add_modify(modified_relations)

@@ -60,168 +60,154 @@ to obtain a list of modified relations that can then be used to create
 
 """
 
-RELATIONS_DB: Dict[str, Relation] = {}
-MODIFIED_RELATIONS: Set[str] = set()
+
+class RelationUpdater(object):
+    def __init__(self):
+        self.RELATIONS_DB: Dict[str, Relation] = {}
+        self.MODIFIED_RELATIONS: Set[str] = set()
+
+    def _reset(self):
+        # Used for tests currently.
+
+        self.RELATIONS_DB = {}
+        self.MODIFIED_RELATIONS = set()
+
+    def get_modified_relations(self):
+        return [self.RELATIONS_DB[_r] for _r in self.MODIFIED_RELATIONS]
+
+    def modify_relations_with_object(
+        self,
+        osm_object: Union[Relation, Node, Way],
+        relation_tag_prefix: str = "_member_of_",
+    ) -> List[Relation]:
+        """
+
+        This function interrogates `osm_object` for Tags whose
+        keys begin with `relation_tag_prefix`. For all keys that begin with
+        that prefix, the function searches a database of relations using the values
+        of those tags as the relation ID. For all matching relations
+        we add a RelationMember to the relation representing `osm_object`
+        and update the database.
+
+        This function is not a "pure" function -- it modifies underlying state
+        without returning anything.
+
+        Relations that are not found in RELATIONS_DB are skipped.
+
+        NOTE that this function does not support Roles.
+
+        NOTE that this function requires that `get_relations` is invoked
+        first. We need to read data from the OSM file only once. You must ensure
+        that the invocation of `get_relations` obtains Relation objects
+        for all Relations that are referred-to by Tags in the OSM objects to be
+        inserted.
 
 
-def _reset():
-    # Used for tests currently.
-    global RELATIONS_DB
-    global MODIFIED_RELATIONS
 
-    RELATIONS_DB = {}
-    MODIFIED_RELATIONS = set()
+        """
 
-
-def get_modified_relations():
-    return [RELATIONS_DB[_r] for _r in MODIFIED_RELATIONS]
-
-
-def modify_relations_with_object(
-    osm_object: Union[Relation, Node, Way], relation_tag_prefix: str = "_member_of_"
-) -> List[Relation]:
-    """
-
-    This function interrogates `osm_object` for Tags whose
-    keys begin with `relation_tag_prefix`. For all keys that begin with
-    that prefix, the function searches a database of relations using the values
-    of those tags as the relation ID. For all matching relations
-    we add a RelationMember to the relation representing `osm_object`
-    and update the database.
-
-    This function is not a "pure" function -- it modifies underlying state
-    without returning anything.
-
-    Relations that are not found in RELATIONS_DB are skipped.
-
-    NOTE that this function does not support Roles.
-
-    NOTE that this function requires that `get_relations` is invoked
-    first. We need to read data from the OSM file only once. You must ensure
-    that the invocation of `get_relations` obtains Relation objects
-    for all Relations that are referred-to by Tags in the OSM objects to be
-    inserted.
-
-
-
-    """
-
-    # these are global because we need to update them
-    # with additions to Relations. Seperate
-    # invocations need access to the updates, so it
-    # has to be global. I don't love it but
-    # I think that's easier than having
-    # clients maintain state themselves?
-    global RELATIONS_DB
-    global MODIFIED_RELATIONS
-
-    relations_in_db = 0
-    try:
-        relations_in_db = len(RELATIONS_DB.keys())
-    except NameError:
-        raise Exception("No Relations Database exists. Did you run get_relations?")
-
-    if relations_in_db == 0:
-        raise RuntimeWarning(
-            (
-                "There are no relations in the relations database. "
-                "No objects will be added to any relations. "
-            )
-        )
-
-    # search for matching tags that represent relation IDs
-    relation_ids = [
-        tag.value for tag in osm_object.tags if tag.key.startswith(relation_tag_prefix)
-    ]
-
-    # update each relation with osm_object.
-    for relation in relation_ids:
-        existing_relation = None
+        relations_in_db = 0
         try:
-            existing_relation = RELATIONS_DB[relation]
-        except KeyError:
-            logging.debug(
-                f"Skipping modifying relation {relation} with object {osm_object.id} because it does not exist in database."
+            relations_in_db = len(self.RELATIONS_DB.keys())
+        except NameError:
+            raise Exception("No Relations Database exists. Did you run get_relations?")
+
+        if relations_in_db == 0:
+            raise RuntimeWarning(
+                (
+                    "There are no relations in the relations database. "
+                    "No objects will be added to any relations. "
+                )
             )
-            continue
 
-        # create a new RelationMember containing the new object
-        rm_type = type(osm_object).__name__.lower()
-        if not LONG_RELATION_MEMBER_TYPE:
-            rm_type = rm_type[0]
-        objectMember = RelationMember(
-            ref=osm_object.id,
-            type=rm_type,
-            role="",
-        )
+        # search for matching tags that represent relation IDs
+        relation_ids = [
+            tag.value
+            for tag in osm_object.tags
+            if tag.key.startswith(relation_tag_prefix)
+        ]
 
-        # create a new relation containing the new member.
-        new_relation = Relation(
-            id=existing_relation.id,
-            version=existing_relation.version,
-            members=existing_relation.members + [objectMember],
-            tags=existing_relation.tags,
-        )
-
-        # update relations DB
-        RELATIONS_DB[relation] = new_relation
-        # add modified relation to set of modified relations
-        MODIFIED_RELATIONS.add(relation)
-
-
-def get_relations(ids: List[str], osm_filepath: str) -> Dict[str, Relation]:
-    """
-    Creates an internal mapping of OSM IDs to Relation objects for each relation
-    in the OSM file that's specified by `osm_filepath`
-    that is specified in `ids`.
-
-    """
-
-    # we need to update the module-level
-    # variable here, so we ensure that we're
-    # using global scope for this variable.
-    global RELATIONS_DB
-
-    class _RelationReader(osmium.SimpleHandler):
-        def __init__(self, ids):
-            super(_RelationReader, self).__init__()
-            self.ids = set(ids)
-            self.relations: Dict[str, Relation] = {}
-
-        def _convert_members(
-            self, members: osmium.osm.RelationMemberList
-        ) -> List[RelationMember]:
-            memberList: List[RelationMember] = []
-            for member in members:
-                _type = member.type
-                if LONG_RELATION_MEMBER_TYPE:
-                    _type = {
-                        "w": "way",
-                        "n": "node",
-                        "r": "relation",
-                    }[member.type]
-                memberList.append(
-                    RelationMember(ref=member.ref, type=_type, role=member.role)
+        # update each relation with osm_object.
+        for relation in relation_ids:
+            existing_relation = None
+            try:
+                existing_relation = self.RELATIONS_DB[relation]
+            except KeyError:
+                logging.debug(
+                    f"Skipping modifying relation {relation} with object {osm_object.id} because it does not exist in database."
                 )
-            return memberList
+                continue
 
-        def _convert_tags(self, tags: osmium.osm.TagList) -> List[Tag]:
-            tagList: List[Tag] = []
-            for tag in tags:
-                tagList.append(Tag(key=tag.k, value=tag.v))
-            return tagList
+            # create a new RelationMember containing the new object
+            rm_type = type(osm_object).__name__.lower()
+            if not LONG_RELATION_MEMBER_TYPE:
+                rm_type = rm_type[0]
+            objectMember = RelationMember(
+                ref=osm_object.id,
+                type=rm_type,
+                role="",
+            )
 
-        def relation(self, r):
-            if str(r.id) in self.ids:
-                self.relations[str(r.id)] = Relation(
-                    id=str(r.id),
-                    version=2,
-                    members=self._convert_members(r.members),
-                    tags=self._convert_tags(r.tags),
-                )
+            # create a new relation containing the new member.
+            new_relation = Relation(
+                id=existing_relation.id,
+                version=existing_relation.version,
+                members=existing_relation.members + [objectMember],
+                tags=existing_relation.tags,
+            )
 
-    _reader = _RelationReader(ids)
-    _reader.apply_file(osm_filepath)
+            # update relations DB
+            self.RELATIONS_DB.update({relation: new_relation})
+            # add modified relation to set of modified relations
+            self.MODIFIED_RELATIONS.add(relation)
 
-    # set the global variable
-    RELATIONS_DB = _reader.relations
+    def get_relations(self, ids: List[str], osm_filepath: str) -> Dict[str, Relation]:
+        """
+        Creates an internal mapping of OSM IDs to Relation objects for each relation
+        in the OSM file that's specified by `osm_filepath`
+        that is specified in `ids`.
+
+        """
+
+        class _RelationReader(osmium.SimpleHandler):
+            def __init__(__self, ids):
+                super(_RelationReader, __self).__init__()
+                __self.ids = set(ids)
+                __self.relations: Dict[str, Relation] = {}
+
+            def _convert_members(
+                __self, members: osmium.osm.RelationMemberList
+            ) -> List[RelationMember]:
+                memberList: List[RelationMember] = []
+                for member in members:
+                    _type = member.type
+                    if LONG_RELATION_MEMBER_TYPE:
+                        _type = {
+                            "w": "way",
+                            "n": "node",
+                            "r": "relation",
+                        }[member.type]
+                    memberList.append(
+                        RelationMember(ref=member.ref, type=_type, role=member.role)
+                    )
+                return memberList
+
+            def _convert_tags(__self, tags: osmium.osm.TagList) -> List[Tag]:
+                tagList: List[Tag] = []
+                for tag in tags:
+                    tagList.append(Tag(key=tag.k, value=tag.v))
+                return tagList
+
+            def relation(__self, r):
+                if str(r.id) in self.ids:
+                    __self.relations[str(r.id)] = Relation(
+                        id=str(r.id),
+                        version=2,
+                        members=__self._convert_members(r.members),
+                        tags=__self._convert_tags(r.tags),
+                    )
+
+        _reader = _RelationReader(ids)
+        _reader.apply_file(osm_filepath)
+
+        self.RELATIONS_DB = _reader.relations
