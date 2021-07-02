@@ -517,7 +517,11 @@ def generate_changes(
     others = [others] if isinstance(others, str) else others
 
     db_reader = OGRDBReader(dbname, dbport, dbuser, dbpass, dbhost)
-    change_writer = OSMChangeWriter(outfile, compress=compress)
+    # keep a copy of elements if we modify_relations
+    # becasue we need them later
+    change_writer = OSMChangeWriter(
+        outfile, compress=compress, keepcopy=modify_relations
+    )
 
     new_feature_iter = db_reader.get_layer_iter(table)
     layer_fields = db_reader.get_layer_fields(table)
@@ -712,7 +716,7 @@ def generate_changes(
     if modify_relations:
         updater = RelationUpdater()
         relations_mentioned = set()
-        for obj in chain(new_ways, new_nodes, new_relations):
+        for obj in change_writer.created:
             relations_mentioned.update(
                 [
                     _t.value
@@ -724,7 +728,7 @@ def generate_changes(
         updater.get_relations(relations_mentioned, osmsrc)
         # update db for each new object
         for obj in tqdm(
-            new_ways + new_nodes + new_relations,
+            change_writer.created,
             desc="Checking objects for relations...",
         ):
             updater.modify_relations_with_object(obj, relation_member_prefix)

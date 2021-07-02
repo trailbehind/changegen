@@ -126,7 +126,6 @@ class RelationUpdater(object):
             for tag in osm_object.tags
             if tag.key.startswith(relation_tag_prefix)
         ]
-
         # update each relation with osm_object.
         for relation in relation_ids:
             existing_relation = None
