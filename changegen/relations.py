@@ -199,7 +199,7 @@ class RelationUpdater(object):
                 return tagList
 
             def relation(__self, r):
-                if str(r.id) in self.ids:
+                if str(r.id) in __self.ids:
                     __self.relations[str(r.id)] = Relation(
                         id=str(r.id),
                         version=2,
