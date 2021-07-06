@@ -31,7 +31,10 @@ extensions = [
     "sphinx_click.ext",
     "sphinxcontrib.apidoc",
 ]
-
+apidoc_module_dir = "../changegen"
+apidoc_output_dir = "source/"
+apidoc_separate_modules = True
+apidoc_extra_args = ["-E", "-f", "-e"]
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
