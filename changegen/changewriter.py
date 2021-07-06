@@ -8,6 +8,7 @@ import warnings
 from collections import namedtuple
 from shutil import copyfile
 from shutil import copyfileobj
+from typing import List
 from typing import Union
 
 from lxml import etree
@@ -30,6 +31,10 @@ The general workflow to use this class is the following:
 * Use the member functions (:py:meth:`OSMChangeWriter.add_create`, :py:meth:`OSMChangeWriter.add_modify`, etc.) to create \
     the desired nodes in the changefile
 * :py:meth:`close` the changefile
+
+.. note::
+   The opening ``<osmChange>`` tag in the output file will contain a ``generator`` attribute 
+   which is set as follows: ``osmchangewriter (Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro})``
 
 """
 
@@ -145,7 +150,7 @@ class OSMChangeWriter(object):
         self.fileobj.close()
         self.closed = True
 
-    def add_modify(self, elementlist):
+    def add_modify(self, elementlist: List[Union[Node, Relation, Way]]):
         """Creates ``<modify>`` tag containing
         all elements in elementlist."""
         with self.xmlwriter as writer:
@@ -155,7 +160,7 @@ class OSMChangeWriter(object):
             writer.flush()
         self._data_written = True
 
-    def add_create(self, elementlist):
+    def add_create(self, elementlist: List[Union[Node, Relation, Way]]):
         """Creates <create> element containing
         all elements in elementlist.
 
@@ -170,7 +175,7 @@ class OSMChangeWriter(object):
             writer.flush()
         self._data_written = True
 
-    def add_delete(self, elementlist):
+    def add_delete(self, elementlist: List[Union[Node, Relation, Way]]):
         """Creates a <delete> element containing
         all elements in elementlist"""
 
