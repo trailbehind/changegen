@@ -5,17 +5,34 @@ from osgeo import ogr
 
 __doc__ = """
 
-``changegen.db`` Module
-=======================
+Working with a PostGIS Database (``db``)
+=========================================
 
-This is some docuemtnation
+The ``db`` module provides an interface to a PostGIS database containing 
+tables relevant to creating an OSM Changefile from geometry data. 
 
+The primary interface exposed here is :py:class:`OGRDBReader`. 
 
 """
 
 
 class OGRDBReader(object):
-    """Read features from PostGIS database via OGR."""
+    """
+    Read features and other metadata from PostGIS database via OGR.
+
+    :param dbname: Name of the database to connect to.
+    :type dbname: str
+    :param dbport: Port that the database is accessible on.
+    :type dbport: str
+    :param dbuser: Username to connect to database with.
+    :type dbuser: str
+    :param dbpass: Password to connect to database with.
+    :type dbpass: str
+    :param dbhost: Hostname where the database is accessible.
+    :type dbhost: str
+
+    This class provides a variety of functionality. See method documentation for more details.
+    """
 
     def _get_layer_fields(layer):
         featureDefinition = layer.GetLayerDefn()
