@@ -80,15 +80,22 @@ class RelationUpdater(object):
         self,
         osm_object: Union[Relation, Node, Way],
         relation_tag: str = "_member_of",
+        at_id: str = None,
     ) -> List[Relation]:
         """
 
         This function interrogates `osm_object` for a Tag whose
         key begins with `relation_tag`. If a matching key is found that begins with
-        that prefix, the function searches a database of relations using the comma-separated
-        values in the Tag as the relation IDs. For all matching relations
-        we add a RelationMember to the relation representing `osm_object`
-        and update the database.
+        that prefix, the function:
+        * searches a database of relations using the comma-separated
+        values in the Tag as the relation IDs. 
+        * For all matching relations we add a RelationMember to the relation representing \
+            `osm_object` and update the database.
+        * if ``at_id`` is ``None``, we add the ``RelationMember`` to the end of the relation. 
+        * if ``at_id`` has a value that matches an OSM ID that currently exists \
+            in the relation, we add the ``RelationMember`` that represents \ 
+            ``osm_object`` _after_ that index. 
+
 
         This function is not a "pure" function -- it modifies underlying state
         without returning anything.
@@ -150,11 +157,33 @@ class RelationUpdater(object):
                 role="",
             )
 
+            # Determine where to insert the new object in the list
+            # of relation members. If at_id is provided, we look
+            # for the index of that ID in the members list and insert
+            # the new object at that index. If it's None, we insert it
+            # at the end.
+            relation_members = existing_relation.members
+            insertion_index = len(relation_members)
+            if at_id:
+                # get index of RelationMember whose id equals at_id
+                try:
+                    insertion_index = next(
+                        idx
+                        for idx, rm in enumerate(relation_members)
+                        if (lambda x: x.ref == at_id)(rm)
+                    )
+                except StopIteration:
+                    logging.debug(
+                        f"Could not find ID {at_id} in list of members of relation {existing_relation.id}."
+                    )
+
+            relation_members.insert(insertion_index, objectMember)
+
             # create a new relation containing the new member.
             new_relation = Relation(
                 id=existing_relation.id,
                 version=existing_relation.version,
-                members=existing_relation.members + [objectMember],
+                members=relation_members,
                 tags=existing_relation.tags,
             )
 

@@ -486,6 +486,7 @@ def generate_changes(
     modify_only=False,
     modify_relations=False,
     relation_tag="_member_of",
+    relation_insertion_tag="parent_osm_id",
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -733,7 +734,21 @@ def generate_changes(
             change_writer.created,
             desc="Checking objects for relations...",
         ):
-            updater.modify_relations_with_object(obj, relation_tag)
+            # check to see if a tag that matches `relation_insertion_tag`
+            # is present, and if so, provide the value as`
+            # at_id to insert the new object at the location of that
+            # ID in the relation.
+            at_id = None
+            try:
+                at_id = [
+                    t.value
+                    for t in obj.tags
+                    if t.key.startswith(relation_insertion_tag)
+                ][0]
+            except IndexError:
+                # did not find insertion tag. at_id is none.
+                at_id = None
+            updater.modify_relations_with_object(obj, relation_tag, at_id)
         # get modified relations
         modified_relations = updater.get_modified_relations()
         ## Write modified relations too.
