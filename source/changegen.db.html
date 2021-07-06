@@ -1,0 +1,236 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="changegen.generator Module" href="changegen.generator.html" /><link rel="prev" title="Writing OSMChange Files (changewriter)" href="changegen.changewriter.html" />
+
+    <meta name="generator" content="sphinx-4.0.3, furo 2021.07.05.beta38"/>
+        <title>changegen.db Module - changegen documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css" />
+    
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css"></head>
+  <body dir="">
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">changegen  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">changegen  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="changegen.html">changegen package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="changegen.changewriter.html">Writing OSMChange Files (<code class="docutils literal notranslate"><span class="pre">changewriter</span></code>)</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">changegen.db</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changegen.generator.html"><code class="docutils literal notranslate"><span class="pre">changegen.generator</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changegen.util.html"><code class="docutils literal notranslate"><span class="pre">changegen.util</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <span class="target" id="module-changegen.db"></span><section id="changegen-db-module">
+<h1><code class="docutils literal notranslate"><span class="pre">changegen.db</span></code> Module<a class="headerlink" href="#changegen-db-module" title="Permalink to this headline">¶</a></h1>
+<p>This is some docuemtnation</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">changegen.db.</span></span><span class="sig-name descname"><span class="pre">OGRDBReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbuser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dbhost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Read features from PostGIS database via OGR.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_all_ids_for_layer">
+<span class="sig-name descname"><span class="pre">get_all_ids_for_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_fieldname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'osm_id'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_all_ids_for_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all unique values of <cite>id_fieldname</cite> within <cite>layer</cite>.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_feature_by_id">
+<span class="sig-name descname"><span class="pre">get_feature_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_field</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_feature_by_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_layer_epsg">
+<span class="sig-name descname"><span class="pre">get_layer_epsg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_layer_epsg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_layer_fields">
+<span class="sig-name descname"><span class="pre">get_layer_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_layer_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get field names from layer</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_layer_iter">
+<span class="sig-name descname"><span class="pre">get_layer_iter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_layer_iter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return generator over features in layer</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_layers">
+<span class="sig-name descname"><span class="pre">get_layers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return available layers from db connection.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.get_num_features">
+<span class="sig-name descname"><span class="pre">get_num_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.get_num_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.db.OGRDBReader.intersections">
+<span class="sig-name descname"><span class="pre">intersections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersecting_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_geometry_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'geometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersecting_geometry_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'geometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersecting_id_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'osm_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#changegen.db.OGRDBReader.intersections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves intersections between new_layer and intersecting_layer.</p>
+<p>Actually returns the nearest points on new_layer features that are within
+&lt;distance_buffer&gt; from features in intersecting_geometry_field</p>
+<p>if ids = True, optionally returns a list of feature IDs from the intersecting layer`
+that represent the intersecting features in intersecting_layer
+with intersections to features in new_layer.</p>
+<p>returns ogr.Layer</p>
+</dd></dl>
+</dd></dl>
+</section>
+
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="changegen.generator.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title"><code class="docutils literal notranslate"><span class="pre">changegen.generator</span></code> Module</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="changegen.changewriter.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Writing OSMChange Files (<code class="docutils literal notranslate"><span class="pre">changewriter</span></code>)</div>
+                
+              </div>
+            </a>
+        </div>
+
+        <div class="related-information">
+            |
+            <a class="muted-link" href="../_sources/source/changegen.db.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </main>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/scripts/main.js"></script>
+    </body>
+</html>

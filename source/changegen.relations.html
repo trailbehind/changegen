@@ -1,0 +1,264 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="changegen.util Module" href="changegen.util.html" /><link rel="prev" title="changegen.generator Module" href="changegen.generator.html" />
+
+    <meta name="generator" content="sphinx-4.0.3, furo 2021.07.05.beta38"/>
+        <title>&lt;no title&gt; - changegen documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css" />
+    
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css"></head>
+  <body dir="">
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">changegen  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">changegen  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="changegen.html">changegen package</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="changegen.changewriter.html">Writing OSMChange Files (<code class="docutils literal notranslate"><span class="pre">changewriter</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changegen.db.html"><code class="docutils literal notranslate"><span class="pre">changegen.db</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changegen.generator.html"><code class="docutils literal notranslate"><span class="pre">changegen.generator</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changegen.util.html"><code class="docutils literal notranslate"><span class="pre">changegen.util</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <span class="target" id="module-changegen.relations"></span><dl class="py data">
+<dt class="sig sig-object py" id="changegen.relations.LONG_RELATION_MEMBER_TYPE">
+<span class="sig-prename descclassname"><span class="pre">changegen.relations.</span></span><span class="sig-name descname"><span class="pre">LONG_RELATION_MEMBER_TYPE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#changegen.relations.LONG_RELATION_MEMBER_TYPE" title="Permalink to this definition">¶</a></dt>
+<dd><p>This module provides support for modifying Relations. It supports a few use-cases.</p>
+<ol class="arabic simple">
+<li><p>A &lt;create&gt; tag will be created, and some objects within it need to be 
+added to relations that already exist. In this case, &lt;modify&gt; tags are 
+created that modify the Relations in question.</p></li>
+<li><p>more later probably</p></li>
+</ol>
+<p>It is important to note that this module is STATEFUL. It should probably be a class. 
+If you need to clear the relations DB and modified relations list, you can use _reset().</p>
+<p>In order to insert an object into an existing relation a particular schema 
+of the input data is required. In particular, any object that is to be inserted
+into a Relation must contain a Tag with a user-specifiable Key
+and a Value that represents a comma-separated list of the IDs of 
+Relations that the object should be inserted into.</p>
+<p>The default Tag Key that is used is <cite>_member_of</cite>. (To use another, pass it as
+the <cite>relation_tag</cite> argument to <cite>get_modified_relations_for_object</cite>).</p>
+<p><cite>modify_relations_with_object</cite> is responsible for modifying a local
+database of Relations with by objects to them, as specified in the object itself.</p>
+<p>Before running <cite>modify_relations_with_object</cite>, a local database of
+Relations must be generated. This is done by providing a list of 
+Relation IDs to <cite>get_relations</cite>. This is an expensive operation, 
+so should be done as infrequently as possible (likely just once).</p>
+<p>The list of IDs provided to <cite>get_relations</cite> should represent all relations
+that need to be inserted into.</p>
+<p>After processing objects is complete, call get_modified_relations 
+to obtain a list of modified relations that can then be used to create
+&lt;modify&gt; tags in a changefile.</p>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="changegen.relations.RelationUpdater">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">changegen.relations.</span></span><span class="sig-name descname"><span class="pre">RelationUpdater</span></span><a class="headerlink" href="#changegen.relations.RelationUpdater" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.relations.RelationUpdater.get_modified_relations">
+<span class="sig-name descname"><span class="pre">get_modified_relations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#changegen.relations.RelationUpdater.get_modified_relations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.relations.RelationUpdater.get_relations">
+<span class="sig-name descname"><span class="pre">get_relations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">osm_filepath</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> → <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="changegen.changewriter.html#changegen.changewriter.Relation" title="changegen.changewriter.Relation"><span class="pre">changegen.changewriter.Relation</span></a><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#changegen.relations.RelationUpdater.get_relations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an internal mapping of OSM IDs to Relation objects for each relation
+in the OSM file that’s specified by <cite>osm_filepath</cite>
+that is specified in <cite>ids</cite>.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="changegen.relations.RelationUpdater.modify_relations_with_object">
+<span class="sig-name descname"><span class="pre">modify_relations_with_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">osm_object</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="changegen.changewriter.html#changegen.changewriter.Relation" title="changegen.changewriter.Relation"><span class="pre">changegen.changewriter.Relation</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="changegen.changewriter.html#changegen.changewriter.Node" title="changegen.changewriter.Node"><span class="pre">changegen.changewriter.Node</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="changegen.changewriter.html#changegen.changewriter.Way" title="changegen.changewriter.Way"><span class="pre">changegen.changewriter.Way</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_tag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'_member_of'</span></span></em><span class="sig-paren">)</span> → <span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="changegen.changewriter.html#changegen.changewriter.Relation" title="changegen.changewriter.Relation"><span class="pre">changegen.changewriter.Relation</span></a><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#changegen.relations.RelationUpdater.modify_relations_with_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function interrogates <cite>osm_object</cite> for a Tag whose
+key begins with <cite>relation_tag</cite>. If a matching key is found that begins with
+that prefix, the function searches a database of relations using the comma-separated
+values in the Tag as the relation IDs. For all matching relations
+we add a RelationMember to the relation representing <cite>osm_object</cite>
+and update the database.</p>
+<p>This function is not a “pure” function – it modifies underlying state
+without returning anything.</p>
+<p>Relations that are not found in RELATIONS_DB are skipped.</p>
+<p>NOTE that this function does not support Roles.</p>
+<p>NOTE that this function requires that <cite>get_relations</cite> is invoked
+first. We need to read data from the OSM file only once. You must ensure
+that the invocation of <cite>get_relations</cite> obtains Relation objects
+for all Relations that are referred-to by Tags in the OSM objects to be
+inserted.</p>
+</dd></dl>
+</dd></dl>
+
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="changegen.util.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title"><code class="docutils literal notranslate"><span class="pre">changegen.util</span></code> Module</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="changegen.generator.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title"><code class="docutils literal notranslate"><span class="pre">changegen.generator</span></code> Module</div>
+                
+              </div>
+            </a>
+        </div>
+
+        <div class="related-information">
+            |
+            <a class="muted-link" href="../_sources/source/changegen.relations.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul class="simple">
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </main>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/scripts/main.js"></script>
+    </body>
+</html>

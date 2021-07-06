@@ -5,5 +5,3 @@ changegen
    :maxdepth: 4
 
    changegen
-   setup
-   test
