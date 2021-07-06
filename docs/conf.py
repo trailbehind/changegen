@@ -71,3 +71,4 @@ autodoc_mock_imports = [
     "ogr",
     "numpy",
 ]
+autodoc_member_order = "bysource"
