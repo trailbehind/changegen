@@ -573,17 +573,32 @@ def generate_changes(
         ):
             raise NotImplementedError("Multi geometries not supported.")
         if isinstance(wgs84_geom, sg.LineString):
-            ways, nodes = _generate_ways_and_nodes(
-                wgs84_geom,
-                ids,
-                feat_tags,
-                intersection_db,
-                max_nodes_per_way=max_nodes_per_way,
-            )
-            new_nodes.extend(nodes)
-            new_ways.extend(ways)
-            _global_node_id_all_ways.extend(chain.from_iterable([w.nds for w in ways]))
-        if isinstance(wgs84_geom, sg.Polygon):
+            ## NOTE that modify_only does not support modifying geometries.
+            if modify_only:
+                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
+
+                new_ways.append(
+                    Way(
+                        id=existing_id,
+                        version=2,
+                        nds=existing_nodes_for_ways[existing_id],
+                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                    )
+                )
+            else:  # not modifying, just creating
+                ways, nodes = _generate_ways_and_nodes(
+                    wgs84_geom,
+                    ids,
+                    feat_tags,
+                    intersection_db,
+                    max_nodes_per_way=max_nodes_per_way,
+                )
+                new_nodes.extend(nodes)
+                new_ways.extend(ways)
+                _global_node_id_all_ways.extend(
+                    chain.from_iterable([w.nds for w in ways])
+                )
+        elif isinstance(wgs84_geom, sg.Polygon):
             ## If we're taking all features to be newly-created (~modify_only)
             ## we need to create ways and nodes for that feature.
             ## IF we're only modifying existing features with features
@@ -796,7 +811,7 @@ def generate_deletions(
     osmsrc,
     outfile,
     compress=True,
-    skip_nodes=False,
+    skip_nodes=True,
 ):
     """
     Produce a changefile with <delete> nodes for all IDs in table.
