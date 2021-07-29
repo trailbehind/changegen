@@ -154,7 +154,9 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
         "in addition to table columns. "
         "This column should contain a hstore, and the keys will be compared "
         "to existing columns. Column key values will take "
-        "precedence over values in the hstore if duplicates are found."
+        "precedence over values in the hstore if duplicates are found. "
+        "Note that this column name will apply to both source tables "
+        "and intersection tables. "
     ),
     default=None,
     show_default=True,
