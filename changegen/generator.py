@@ -719,6 +719,7 @@ def generate_changes(
         if len(new_ways) > 0 or len(new_nodes) > 0:
             if modify_only:
                 change_writer.add_modify(new_ways)
+                change_writer.add_modify(new_nodes)
             else:
                 change_writer.add_create(new_nodes + new_ways)
         if len(new_relations) > 0:
