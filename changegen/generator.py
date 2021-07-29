@@ -573,7 +573,31 @@ def generate_changes(
             wgs84_geom, sg.MultiPolygon
         ):
             raise NotImplementedError("Multi geometries not supported.")
-        if isinstance(wgs84_geom, sg.LineString):
+        if isinstance(wgs84_geom, sg.Point):
+            if modify_only:
+                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
+
+                new_nodes.append(
+                    Node(
+                        id=existing_id,
+                        version=2,
+                        lat=wgs84_geom.y,
+                        lon=wgs84_geom.x,
+                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                    )
+                )
+            else:
+                new_nodes.append(
+                    Node(
+                        id=next(ids),
+                        version=1,
+                        lat=wgs84_geom.y,
+                        lon=wgs84_geom.x,
+                        tags=feat_tags,
+                    )
+                )
+
+        elif isinstance(wgs84_geom, sg.LineString):
             ## NOTE that modify_only does not support modifying geometries.
             if modify_only:
                 existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
