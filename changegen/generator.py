@@ -23,6 +23,7 @@ from .changewriter import Relation
 from .changewriter import RelationMember
 from .changewriter import Tag
 from .changewriter import Way
+from .db import hstore_as_dict
 from .db import OGRDBReader
 
 WGS84 = pyproj.CRS("EPSG:4326")
@@ -165,9 +166,11 @@ def _id_gen(id_offset, neg_id):
         id = (id + 1) if not neg_id else (id - 1)
 
 
-def _generate_tags_from_feature(feature, fields, exclude=[]):
+def _generate_tags_from_feature(feature, fields, hstore_column=None, exclude=[]):
     """returns list of tags given layer fields and a feature containing
-    fields. Will not produce a tag for any field name in <exclude>
+    fields. Will not produce a tag for any field name in <exclude>.
+
+    If hstore_column is not null,
     """
     tags = []
     for field in fields:
@@ -175,6 +178,23 @@ def _generate_tags_from_feature(feature, fields, exclude=[]):
             continue  # skip
         fv = feature.GetFieldAsString(feature.GetFieldIndex(field))
         tags.append(Tag(key=field, value=fv))
+
+    # Get values from hstore (if any) and add those that we haven't already
+    # seen from <fields> as Tags to the `tags` list
+    if hstore_column:
+        existing_keys = set(fields)
+        hstore_content = hstore_as_dict(
+            feature.GetFieldAsString(feature.GetFieldIndex(hstore_column))
+        )
+        logging.debug(
+            f'Found {len(hstore_content.keys())} keys in hstore column "{hstore_column}" for feature {feature.GetFID()}'
+        )
+        for key, value in hstore_content.items():
+            if key not in existing_keys:
+                tags.append(Tag(key=key, value=value))
+
+    # split hstore string ("key"=>"value", "key2"=>"value2", ...) into json(?) or dict
+
     return tags
 
 
@@ -562,7 +582,9 @@ def generate_changes(
 
         # compute intersections + extract geometry + tags + reproject
         feat_geom = wkt.loads(feature.GetGeometryRef().ExportToWkt())
-        feat_tags = _generate_tags_from_feature(feature, layer_fields)
+        feat_tags = _generate_tags_from_feature(
+            feature, layer_fields, hstore_column=hstore_column
+        )
         wgs84_geom = transform(projection, feat_geom)
 
         new_nodes = []
@@ -720,6 +742,7 @@ def generate_changes(
         if len(new_ways) > 0 or len(new_nodes) > 0:
             if modify_only:
                 change_writer.add_modify(new_ways)
+                change_writer.add_modify(new_nodes)
             else:
                 change_writer.add_create(new_nodes + new_ways)
         if len(new_relations) > 0:
@@ -763,7 +786,9 @@ def generate_changes(
 
                 # generate modified way and correspdoning nodes
                 _feat = db_reader.get_feature_by_id(other_layer, id, "osm_id")
-                _feat_tags = _generate_tags_from_feature(_feat, other_layer_fields)
+                _feat_tags = _generate_tags_from_feature(
+                    _feat, other_layer_fields, hstore_column=hstore_column
+                )
                 other_feat_geom = wkt.loads(_feat.GetGeometryRef().ExportToWkt())
                 other_feat_wgs84 = transform(projection, other_feat_geom)
 
