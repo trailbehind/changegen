@@ -195,8 +195,6 @@ def _generate_tags_from_feature(feature, fields, hstore_column=None, exclude=[])
             if key not in existing_keys:
                 tags.append(Tag(key=key, value=value))
 
-    # split hstore string ("key"=>"value", "key2"=>"value2", ...) into json(?) or dict
-
     return tags
 
 
