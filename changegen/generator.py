@@ -483,6 +483,7 @@ def generate_changes(
     self_intersections=False,
     max_nodes_per_way=2000,
     modify_only=False,
+    hstore_column=None,
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>

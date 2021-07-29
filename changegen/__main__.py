@@ -147,6 +147,18 @@ def _get_db_tables(suffix, dbname, dbport, dbuser, dbpass, dbhost):
     ),
     default="2000",
 )
+@click.option(
+    "--hstore_tags",
+    help=(
+        "Specify Postgres hstore column to obtain tags from, "
+        "in addition to table columns. "
+        "This column should contain a hstore, and the keys will be compared "
+        "to existing columns. Column key values will take "
+        "precedence over values in the hstore if duplicates are found."
+    ),
+    default=None,
+    show_default=True,
+)
 @click.option("--osmsrc", help="Source OSM PBF File path", required=True)
 @click.argument("dbname", default=os.environ.get("PGDATABASE", "conflate"))
 @click.argument("dbport", default=os.environ.get("PGPORT", "15432"))
@@ -233,6 +245,7 @@ def main(*args: tuple, **kwargs: dict):
             self_intersections=kwargs["self"],
             max_nodes_per_way=int(max_nodes_per_way),
             modify_only=kwargs["modify_meta"],
+            hstore_column=kwargs["hstore_tags"],
         )
 
     for table in kwargs["deletions"]:
