@@ -170,7 +170,9 @@ def _generate_tags_from_feature(feature, fields, hstore_column=None, exclude=[])
     """returns list of tags given layer fields and a feature containing
     fields. Will not produce a tag for any field name in <exclude>.
 
-    If hstore_column is not null,
+    If hstore_column is not null, tags will also be derived from the hstore column.
+    Only tags that are _not_ present in <fields> will be added as Tags (duplicates
+    are ignored, and columns take precedence.)
     """
     tags = []
     for field in fields:
