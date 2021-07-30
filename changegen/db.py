@@ -14,12 +14,15 @@ def hstore_as_dict(hstore_str):
     :type hstore_str: str
     :rtype: dict
     """
-    return dict(
-        map(
-            lambda x: map(lambda x: x.strip(), x.split("=>")),
-            hstore_str.replace('"', "").split(","),
+    if len(hstore_str) > 0:
+        return dict(
+            map(
+                lambda x: map(lambda x: x.strip().replace('"', ""), x.split("=>")),
+                hstore_str.split('", '),
+            )
         )
-    )
+    else:
+        return {}
 
 
 class OGRDBReader(object):

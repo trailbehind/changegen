@@ -185,12 +185,18 @@ def _generate_tags_from_feature(feature, fields, hstore_column=None, exclude=[])
     # seen from <fields> as Tags to the `tags` list
     if hstore_column:
         existing_keys = set(fields)
-        hstore_content = hstore_as_dict(
-            feature.GetFieldAsString(feature.GetFieldIndex(hstore_column))
-        )
-        logging.debug(
-            f'Found {len(hstore_content.keys())} keys in hstore column "{hstore_column}" for feature {feature.GetFID()}'
-        )
+        hstore_content = {}
+        try:
+            hstore_content = hstore_as_dict(
+                feature.GetFieldAsString(feature.GetFieldIndex(hstore_column))
+            )
+            logging.debug(
+                f'Found {len(hstore_content.keys())} keys in hstore column "{hstore_column}" for feature {feature.GetFID()}'
+            )
+        except ValueError:
+            logging.error(
+                '!! Error parsing hstore column "{hstore_column}" for feature {feature.GetFID()}.'
+            )
         for key, value in hstore_content.items():
             if key not in existing_keys:
                 tags.append(Tag(key=key, value=value))
