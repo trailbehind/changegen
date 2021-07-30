@@ -190,9 +190,6 @@ def _generate_tags_from_feature(feature, fields, hstore_column=None, exclude=[])
             hstore_content = hstore_as_dict(
                 feature.GetFieldAsString(feature.GetFieldIndex(hstore_column))
             )
-            logging.debug(
-                f'Found {len(hstore_content.keys())} keys in hstore column "{hstore_column}" for feature {feature.GetFID()}'
-            )
         except ValueError:
             logging.error(
                 '!! Error parsing hstore column "{hstore_column}" for feature {feature.GetFID()}.'
