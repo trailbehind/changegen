@@ -175,6 +175,10 @@ def _generate_tags_from_feature(feature, fields, hstore_column=None, exclude=[])
     are ignored, and columns take precedence.)
     """
     tags = []
+    # if hstore column is present, we don't want to include
+    # it in the output set of tags:
+    if hstore_column:
+        exclude.append(hstore_column)
     for field in fields:
         if field in exclude:
             continue  # skip
