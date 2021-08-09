@@ -107,7 +107,7 @@ class OSMChangeWriter(object):
     )
     _root_element_close = "</osmChange>"
 
-    def __init__(self, filename=None, compress=False):
+    def __init__(self, filename=None, compress=False, keepcopy=False):
         super(OSMChangeWriter, self).__init__()
 
         self.compress = compress
@@ -115,6 +115,10 @@ class OSMChangeWriter(object):
         self.fileobj = None
         self.closed = False
         self._data_written = False
+        self.keepcopy = keepcopy
+        self.created = []
+        self.modified = []
+        self.deleted = []
 
         # set fileobj based on compression
         if self.filename and self.compress:
@@ -163,6 +167,8 @@ class OSMChangeWriter(object):
                     write_osm_object(e, writer)
             writer.flush()
         self._data_written = True
+        if self.keepcopy:
+            self.modified.extend(elementlist)
 
     def add_create(self, elementlist):
         """Creates <create> element containing
@@ -178,6 +184,8 @@ class OSMChangeWriter(object):
                     write_osm_object(e, writer)
             writer.flush()
         self._data_written = True
+        if self.keepcopy:
+            self.created.extend(elementlist)
 
     def add_delete(self, elementlist):
         """Creates a <delete> element containing
@@ -189,3 +197,5 @@ class OSMChangeWriter(object):
                     write_osm_object(e, writer)
                 writer.flush()
         self._data_written = True
+        if self.keepcopy:
+            self.deleted.extend(elementlist)

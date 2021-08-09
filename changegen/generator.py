@@ -24,6 +24,7 @@ from .changewriter import RelationMember
 from .changewriter import Tag
 from .changewriter import Way
 from .db import OGRDBReader
+from .relations import RelationUpdater
 
 WGS84 = pyproj.CRS("EPSG:4326")
 WEBMERC = pyproj.CRS("EPSG:3857")
@@ -483,6 +484,9 @@ def generate_changes(
     self_intersections=False,
     max_nodes_per_way=2000,
     modify_only=False,
+    modify_relations=False,
+    relation_tag="_member_of",
+    relation_insertion_tag="parent_osm_id",
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -514,7 +518,11 @@ def generate_changes(
     others = [others] if isinstance(others, str) else others
 
     db_reader = OGRDBReader(dbname, dbport, dbuser, dbpass, dbhost)
-    change_writer = OSMChangeWriter(outfile, compress=compress)
+    # keep a copy of elements if we modify_relations
+    # becasue we need them later
+    change_writer = OSMChangeWriter(
+        outfile, compress=compress, keepcopy=modify_relations
+    )
 
     new_feature_iter = db_reader.get_layer_iter(table)
     layer_fields = db_reader.get_layer_fields(table)
@@ -699,6 +707,53 @@ def generate_changes(
                 change_writer.add_create(new_nodes + new_ways)
         if len(new_relations) > 0:
             change_writer.add_create(new_relations)
+
+    ## Relation Updates: If modify_relations is true,
+    ## we'll search through all newly-added objects
+    ## for Tags with prefix specified by `relation_tag`
+    ## and add them to the relations specified by the
+    ## values of those tags.
+    modified_relations = []
+    if modify_relations:
+        updater = RelationUpdater()
+        relations_mentioned = set()
+        for obj in change_writer.created:
+            relations_mentioned.update(
+                chain.from_iterable(
+                    [
+                        _t.value.split(",")
+                        for _t in obj.tags
+                        if _t.key.startswith(relation_tag)
+                    ]
+                )
+            )
+        # create relations DB
+        updater.get_relations(relations_mentioned, osmsrc)
+        # update db for each new object
+        for obj in tqdm(
+            change_writer.created,
+            desc="Checking objects for relations...",
+        ):
+            # check to see if a tag that matches `relation_insertion_tag`
+            # is present, and if so, provide the value as`
+            # at_id to insert the new object at the location of that
+            # ID in the relation.
+            at_id = None
+            try:
+                at_id = [
+                    t.value
+                    for t in obj.tags
+                    if t.key.startswith(relation_insertion_tag)
+                ][0]
+            except IndexError:
+                # did not find insertion tag. at_id is none.
+                at_id = None
+            updater.modify_relations_with_object(obj, relation_tag, at_id)
+        # get modified relations
+        modified_relations = updater.get_modified_relations()
+        ## Write modified relations too.
+        if len(modified_relations) > 0:
+            change_writer.add_modify(modified_relations)
 
     # Write all modified ways with intersections
     # Because we have to re-generate nodes for all points
