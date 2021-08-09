@@ -4,6 +4,27 @@ import warnings
 from osgeo import ogr
 
 
+def hstore_as_dict(hstore_str):
+    """
+    Converts a string representation of a Postgres hstore
+    into a Python dictionary. hstore strings should be
+    of the form "'key1'=>'value1', "key2"=>"value2", ..."
+
+    :param hstore_str: hstore string
+    :type hstore_str: str
+    :rtype: dict
+    """
+    if len(hstore_str) > 0:
+        return dict(
+            map(
+                lambda x: map(lambda x: x.strip().replace('"', ""), x.split("=>")),
+                hstore_str.split('", '),
+            )
+        )
+    else:
+        return {}
+
+
 class OGRDBReader(object):
     """Read features from PostGIS database via OGR."""
 

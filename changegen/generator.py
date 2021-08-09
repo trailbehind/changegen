@@ -23,6 +23,7 @@ from .changewriter import Relation
 from .changewriter import RelationMember
 from .changewriter import Tag
 from .changewriter import Way
+from .db import hstore_as_dict
 from .db import OGRDBReader
 
 WGS84 = pyproj.CRS("EPSG:4326")
@@ -165,16 +166,42 @@ def _id_gen(id_offset, neg_id):
         id = (id + 1) if not neg_id else (id - 1)
 
 
-def _generate_tags_from_feature(feature, fields, exclude=[]):
+def _generate_tags_from_feature(feature, fields, hstore_column=None, exclude=[]):
     """returns list of tags given layer fields and a feature containing
-    fields. Will not produce a tag for any field name in <exclude>
+    fields. Will not produce a tag for any field name in <exclude>.
+
+    If hstore_column is not null, tags will also be derived from the hstore column.
+    Only tags that are _not_ present in <fields> will be added as Tags (duplicates
+    are ignored, and columns take precedence.)
     """
     tags = []
+    # if hstore column is present, we don't want to include
+    # it in the output set of tags:
+    if hstore_column:
+        exclude.append(hstore_column)
     for field in fields:
         if field in exclude:
             continue  # skip
         fv = feature.GetFieldAsString(feature.GetFieldIndex(field))
         tags.append(Tag(key=field, value=fv))
+
+    # Get values from hstore (if any) and add those that we haven't already
+    # seen from <fields> as Tags to the `tags` list
+    if hstore_column:
+        existing_keys = set(fields)
+        hstore_content = {}
+        try:
+            hstore_content = hstore_as_dict(
+                feature.GetFieldAsString(feature.GetFieldIndex(hstore_column))
+            )
+        except ValueError:
+            logging.error(
+                '!! Error parsing hstore column "{hstore_column}" for feature {feature.GetFID()}.'
+            )
+        for key, value in hstore_content.items():
+            if key not in existing_keys:
+                tags.append(Tag(key=key, value=value))
+
     return tags
 
 
@@ -483,6 +510,7 @@ def generate_changes(
     self_intersections=False,
     max_nodes_per_way=2000,
     modify_only=False,
+    hstore_column=None,
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -561,7 +589,9 @@ def generate_changes(
 
         # compute intersections + extract geometry + tags + reproject
         feat_geom = wkt.loads(feature.GetGeometryRef().ExportToWkt())
-        feat_tags = _generate_tags_from_feature(feature, layer_fields)
+        feat_tags = _generate_tags_from_feature(
+            feature, layer_fields, hstore_column=hstore_column
+        )
         wgs84_geom = transform(projection, feat_geom)
 
         new_nodes = []
@@ -763,7 +793,9 @@ def generate_changes(
 
                 # generate modified way and correspdoning nodes
                 _feat = db_reader.get_feature_by_id(other_layer, id, "osm_id")
-                _feat_tags = _generate_tags_from_feature(_feat, other_layer_fields)
+                _feat_tags = _generate_tags_from_feature(
+                    _feat, other_layer_fields, hstore_column=hstore_column
+                )
                 other_feat_geom = wkt.loads(_feat.GetGeometryRef().ExportToWkt())
                 other_feat_wgs84 = transform(projection, other_feat_geom)
 
