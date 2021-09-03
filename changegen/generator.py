@@ -182,6 +182,38 @@ def _generate_tags_from_feature(feature, fields, exclude=[]):
             continue  # skip
         fv = feature.GetFieldAsString(feature.GetFieldIndex(field))
         tags.append(Tag(key=field, value=fv))
+
+    # Get values from hstore (if any) and add those that we haven't already
+    # seen from <fields> as Tags to the `tags` list
+    if hstore_column:
+        existing_keys = set(fields)
+        hstore_content = {}
+        try:
+            hstore_content = hstore_as_dict(
+                feature.GetFieldAsString(feature.GetFieldIndex(hstore_column))
+            )
+        except ValueError as e:
+            hstore_str = feature.GetFieldAsString(feature.GetFieldIndex(hstore_column))
+
+            print(
+                list(
+                    chain.from_iterable(
+                        map(
+                            lambda x: map(
+                                lambda x: x.strip().replace('"', ""), x.split("=>")
+                            ),
+                            hstore_str.split('", '),
+                        )
+                    )
+                )
+            )
+            logging.error(
+                f'!! Error parsing hstore column "{hstore_column}" for feature {feature.GetFID()}.'
+            )
+        for key, value in hstore_content.items():
+            if key not in existing_keys:
+                tags.append(Tag(key=key, value=value))
+
     return tags
 
 
