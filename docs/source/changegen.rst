@@ -10,6 +10,7 @@ Submodules
    changegen.changewriter
    changegen.db
    changegen.generator
+   changegen.relations
    changegen.util
 
 Module contents

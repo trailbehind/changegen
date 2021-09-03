@@ -14,6 +14,12 @@ import sys
 sys.path.insert(0, os.path.abspath("../"))
 
 
+html_logo = "images/cglogo.png"
+html_theme_options = {
+    "sidebar_hide_name": True,
+    "announcement": "These docs are undergoing active development and may change.",
+}
+
 # -- Project information -----------------------------------------------------
 
 project = "changegen"
