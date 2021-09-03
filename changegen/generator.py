@@ -23,6 +23,7 @@ from .changewriter import Relation
 from .changewriter import RelationMember
 from .changewriter import Tag
 from .changewriter import Way
+from .db import hstore_as_dict
 from .db import OGRDBReader
 
 WGS84 = pyproj.CRS("EPSG:4326")
@@ -172,11 +173,19 @@ def _id_gen(id_offset, neg_id):
         id = (id + 1) if not neg_id else (id - 1)
 
 
-def _generate_tags_from_feature(feature, fields, exclude=[]):
+def _generate_tags_from_feature(feature, fields, hstore_column=None, exclude=[]):
     """returns list of tags given layer fields and a feature containing
-    fields. Will not produce a tag for any field name in <exclude>
+    fields. Will not produce a tag for any field name in <exclude>.
+
+    If hstore_column is not null, tags will also be derived from the hstore column.
+    Only tags that are _not_ present in <fields> will be added as Tags (duplicates
+    are ignored, and columns take precedence.)
     """
     tags = []
+    # if hstore column is present, we don't want to include
+    # it in the output set of tags:
+    if hstore_column:
+        exclude.append(hstore_column)
     for field in fields:
         if field in exclude:
             continue  # skip
@@ -192,23 +201,9 @@ def _generate_tags_from_feature(feature, fields, exclude=[]):
             hstore_content = hstore_as_dict(
                 feature.GetFieldAsString(feature.GetFieldIndex(hstore_column))
             )
-        except ValueError as e:
-            hstore_str = feature.GetFieldAsString(feature.GetFieldIndex(hstore_column))
-
-            print(
-                list(
-                    chain.from_iterable(
-                        map(
-                            lambda x: map(
-                                lambda x: x.strip().replace('"', ""), x.split("=>")
-                            ),
-                            hstore_str.split('", '),
-                        )
-                    )
-                )
-            )
+        except ValueError:
             logging.error(
-                f'!! Error parsing hstore column "{hstore_column}" for feature {feature.GetFID()}.'
+                '!! Error parsing hstore column "{hstore_column}" for feature {feature.GetFID()}.'
             )
         for key, value in hstore_content.items():
             if key not in existing_keys:
@@ -522,6 +517,7 @@ def generate_changes(
     self_intersections=False,
     max_nodes_per_way=2000,
     modify_only=False,
+    hstore_column=None,
 ):
     """
     Generate an osm changefile (outfile) based on features in <table>
@@ -600,7 +596,9 @@ def generate_changes(
 
         # compute intersections + extract geometry + tags + reproject
         feat_geom = wkt.loads(feature.GetGeometryRef().ExportToWkt())
-        feat_tags = _generate_tags_from_feature(feature, layer_fields)
+        feat_tags = _generate_tags_from_feature(
+            feature, layer_fields, hstore_column=hstore_column
+        )
         wgs84_geom = transform(projection, feat_geom)
 
         new_nodes = []
@@ -611,18 +609,57 @@ def generate_changes(
             wgs84_geom, sg.MultiPolygon
         ):
             raise NotImplementedError("Multi geometries not supported.")
-        if isinstance(wgs84_geom, sg.LineString):
-            ways, nodes = _generate_ways_and_nodes(
-                wgs84_geom,
-                ids,
-                feat_tags,
-                intersection_db,
-                max_nodes_per_way=max_nodes_per_way,
-            )
-            new_nodes.extend(nodes)
-            new_ways.extend(ways)
-            _global_node_id_all_ways.extend(chain.from_iterable([w.nds for w in ways]))
-        if isinstance(wgs84_geom, sg.Polygon):
+        if isinstance(wgs84_geom, sg.Point):
+            if modify_only:
+                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
+
+                new_nodes.append(
+                    Node(
+                        id=existing_id,
+                        version=2,
+                        lat=wgs84_geom.y,
+                        lon=wgs84_geom.x,
+                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                    )
+                )
+            else:
+                new_nodes.append(
+                    Node(
+                        id=next(ids),
+                        version=1,
+                        lat=wgs84_geom.y,
+                        lon=wgs84_geom.x,
+                        tags=feat_tags,
+                    )
+                )
+
+        elif isinstance(wgs84_geom, sg.LineString):
+            ## NOTE that modify_only does not support modifying geometries.
+            if modify_only:
+                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
+
+                new_ways.append(
+                    Way(
+                        id=existing_id,
+                        version=2,
+                        nds=existing_nodes_for_ways[existing_id],
+                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                    )
+                )
+            else:  # not modifying, just creating
+                ways, nodes = _generate_ways_and_nodes(
+                    wgs84_geom,
+                    ids,
+                    feat_tags,
+                    intersection_db,
+                    max_nodes_per_way=max_nodes_per_way,
+                )
+                new_nodes.extend(nodes)
+                new_ways.extend(ways)
+                _global_node_id_all_ways.extend(
+                    chain.from_iterable([w.nds for w in ways])
+                )
+        elif isinstance(wgs84_geom, sg.Polygon):
             ## If we're taking all features to be newly-created (~modify_only)
             ## we need to create ways and nodes for that feature.
             ## IF we're only modifying existing features with features
@@ -719,6 +756,7 @@ def generate_changes(
         if len(new_ways) > 0 or len(new_nodes) > 0:
             if modify_only:
                 change_writer.add_modify(new_ways)
+                change_writer.add_modify(new_nodes)
             else:
                 change_writer.add_create(new_nodes + new_ways)
         if len(new_relations) > 0:
@@ -762,7 +800,9 @@ def generate_changes(
 
                 # generate modified way and correspdoning nodes
                 _feat = db_reader.get_feature_by_id(other_layer, id, "osm_id")
-                _feat_tags = _generate_tags_from_feature(_feat, other_layer_fields)
+                _feat_tags = _generate_tags_from_feature(
+                    _feat, other_layer_fields, hstore_column=hstore_column
+                )
                 other_feat_geom = wkt.loads(_feat.GetGeometryRef().ExportToWkt())
                 other_feat_wgs84 = transform(projection, other_feat_geom)
 
@@ -835,7 +875,7 @@ def generate_deletions(
     osmsrc,
     outfile,
     compress=True,
-    skip_nodes=False,
+    skip_nodes=True,
 ):
     """
     Produce a changefile with <delete> nodes for all IDs in table.
