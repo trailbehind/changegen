@@ -18,7 +18,7 @@ setup(
         "psycopg2",
         "pyproj",
         "rtree",
-        "osmium"
+        "osmium",
     ],
     test_suite="test",
     entry_points="""

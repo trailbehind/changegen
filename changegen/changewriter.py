@@ -8,29 +8,33 @@ import warnings
 from collections import namedtuple
 from shutil import copyfile
 from shutil import copyfileobj
+from typing import List
+from typing import Union
 
 from lxml import etree
 
-"""
-changewriter.py
+__doc__ = """
 
-tony@gaiagps.com
+Writing OSMChange Files (``changewriter``)
+==========================================
 
-Module for writing OSMChange files
-(https://wiki.openstreetmap.org/wiki/OsmChange).
+The :py:mod:`changewriter` module provides an interface for writing `OSMChange files <https://wiki.openstreetmap.org/wiki/OsmChange>`_. This interface is 
+defined as :py:class:`OSMChangeWriter`.
 
-Data Types:
-    Tag (namedtuple): key, value
-    Node (namedtuple): id, version, lat, lon, tags (array of Tags)
-    Way (namedtuple): id, version, nds (array of Node ids [ints]),
-        tags (array of Tags)
+It supports **addition**, **removal**, and **modification** of Nodes, 
+Ways, and Relations. 
 
-Classes:
-    OSMChangeWriter: writes XML changefile
+The general workflow to use this class is the following: 
 
-Functions:
-    write_osm_object: _private_ helper function to write osm object to
-    OSMChangeWriter.
+* Create an instance of :py:class:`OSMChangeWriter` with a filename
+* Create OSM objects using the classes provided here (:py:obj:`Node`, :py:obj:`Way`, etc.)
+* Use the member functions (:py:meth:`OSMChangeWriter.add_create`, :py:meth:`OSMChangeWriter.add_modify`, etc.) to create \
+    the desired nodes in the changefile
+* :py:meth:`close` the changefile
+
+.. note::
+   The opening ``<osmChange>`` tag in the output file will contain a ``generator`` attribute 
+   which is set as follows: ``osmchangewriter (Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro})``
 
 """
 
@@ -39,66 +43,58 @@ OSMCHANGE_VERSION = "0.6"
 OSMCHANGE_GENERATOR = f"osmchangewriter (Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro})"
 
 Tag = namedtuple("Tag", "key,value")
+Tag.__doc__ = "OSM ``Tag`` element."
+
 Node = namedtuple("Node", "id, version, lat, lon, tags")
+Node.__doc__ = "OSM ``Node`` element."
+
 Way = namedtuple("Way", "id, version, nds, tags")
+Way.__doc__ = "OSM ``Way`` element. All fields are required. "
+Way.nds.__doc__ = (
+    "``Nds`` is a list of OSM IDs representing the ``Nodes`` that comprise the ``Way``."
+)
+
 Relation = namedtuple("Relation", "id, version, members, tags")
+Relation.__doc__ = (
+    "OSM ``Relation`` element. Members must be :py:obj:`RelationMember` objects."
+)
+Relation.members.__doc__ = "List of :py:obj:`RelationMember` objects."
+
 RelationMember = namedtuple("RelationMember", "ref, type, role")
-
-
-def write_osm_object(osm, writer):
-    """Writes an OSM object (Node, Way)
-    as an XML object. Uses the type of the
-    namedtuple representing each OSM object
-    to determine the type of XML element to write.
-
-    Creates child elements for each Tag or nd (node ref)
-    """
-    try:
-        attrs = dict(osm._asdict())
-        objtype = type(osm).__name__.lower()
-        # we don't want to write tags, nds, or members in the main element
-        # for objects. They'll get written as child elements below.
-        attrs.pop("tags")
-        if hasattr(osm, "nds"):
-            attrs.pop("nds")
-        if hasattr(osm, "members"):
-            attrs.pop("members")
-        attrs = {k: str(attrs[k]) for k in attrs.keys()}
-
-        with writer.element(objtype, **attrs):
-            # special cases for objects with
-            # <tags> or <nds> (ways). Write as sub-elems
-            if hasattr(osm, "tags"):
-                for tag in osm.tags:
-                    writer.write(etree.Element("tag", k=str(tag.key), v=str(tag.value)))
-            if hasattr(osm, "nds"):
-                for nd in osm.nds:
-                    writer.write(etree.Element("nd", ref=str(nd)))
-            if hasattr(osm, "members"):
-                for member in osm.members:
-                    writer.write(
-                        etree.Element(
-                            "member",
-                            ref=str(member.ref),
-                            type=member.type,
-                            role=member.role,
-                        )
-                    )
-            writer.flush()
-    except AttributeError:
-        raise RuntimeError(f"OSM Object {osm} is malformed.")
+RelationMember.__doc__ = "OSM ``RelationMember`` element. "
 
 
 class OSMChangeWriter(object):
     """
-    Write OSMChange format
-    (https://wiki.openstreetmap.org/wiki/OsmChange)
-    to file_like object. close() MUST be called
+    Write changesets as `OSMChange format
+    <https://wiki.openstreetmap.org/wiki/OsmChange>`_
+    to a file.
+
+    Provides support for ``modify``, ``create``,  add ``delete`` tags currently,
+    with support for Node (:py:obj:`Node`), Way (:py:obj:`Way`), and Relation (:py:obj:`Relation`) OSM
+    elements. 
+
+    :py:meth:`close` **must** be called
     to ensure compliance with XML schema.
 
-    Provides support for modify and add tags currently,
-    with support for Node, Way, and Tag OSM
-    elements (defined above.)
+    :param filename: A path specifying the location of the output changefile. 
+    :type filename: str
+    :param compress: A boolean indicating wither to use GZip compression when writing the changefile. 
+    :type compress: bool
+
+    :raises `warnings.ResourceWarning`: if :py:meth:`close` isn't called before object is garbage-collected \
+        the resulting file will be missing a closing XML tag and will be invalid. 
+
+    Example
+    -------
+    .. code-block:: python
+       
+       writer = OSMChangeWriter('test.osc', compress=True)
+       _tag = changewriter.Tag("attribute", "value")
+       _node = changewriter.Node(id="-111", version="99", lat=90, lon=180, tags=[_tag])
+       writer.add_create([_node])
+       writer.close()
+
 
     """
 
@@ -146,7 +142,7 @@ class OSMChangeWriter(object):
 
     def close(self):
         """
-        Add the <osmChange> closing tag and close the file.
+        Add the ``</osmChange>`` closing tag and close the file.
         """
 
         self.fileobj.flush()
@@ -154,8 +150,8 @@ class OSMChangeWriter(object):
         self.fileobj.close()
         self.closed = True
 
-    def add_modify(self, elementlist):
-        """Creates <modify> element containing
+    def add_modify(self, elementlist: List[Union[Node, Relation, Way]]):
+        """Creates ``<modify>`` tag containing
         all elements in elementlist."""
         with self.xmlwriter as writer:
             with writer.element("modify"):
@@ -164,7 +160,7 @@ class OSMChangeWriter(object):
             writer.flush()
         self._data_written = True
 
-    def add_create(self, elementlist):
+    def add_create(self, elementlist: List[Union[Node, Relation, Way]]):
         """Creates <create> element containing
         all elements in elementlist.
 
@@ -179,7 +175,7 @@ class OSMChangeWriter(object):
             writer.flush()
         self._data_written = True
 
-    def add_delete(self, elementlist):
+    def add_delete(self, elementlist: List[Union[Node, Relation, Way]]):
         """Creates a <delete> element containing
         all elements in elementlist"""
 
@@ -189,3 +185,51 @@ class OSMChangeWriter(object):
                     write_osm_object(e, writer)
                 writer.flush()
         self._data_written = True
+
+
+def write_osm_object(osm: Union[Node, Way, Relation], writer: OSMChangeWriter):
+    """
+
+    Helper function that writes an OSM object
+    (:py:obj:`Node`, :py:obj:`Way`, :py:obj:`Relation`)
+    as an XML object using an :py:class:`OSMChangeWriter`. Uses the type of the
+    namedtuple representing each OSM object
+    to determine the type of XML element to write.
+
+    Creates child elements for each Tag or nd (node ref) contained within the
+    parent object.
+    """
+    try:
+        attrs = dict(osm._asdict())
+        objtype = type(osm).__name__.lower()
+        # we don't want to write tags, nds, or members in the main element
+        # for objects. They'll get written as child elements below.
+        attrs.pop("tags")
+        if hasattr(osm, "nds"):
+            attrs.pop("nds")
+        if hasattr(osm, "members"):
+            attrs.pop("members")
+        attrs = {k: str(attrs[k]) for k in attrs.keys()}
+
+        with writer.element(objtype, **attrs):
+            # special cases for objects with
+            # <tags> or <nds> (ways). Write as sub-elems
+            if hasattr(osm, "tags"):
+                for tag in osm.tags:
+                    writer.write(etree.Element("tag", k=str(tag.key), v=str(tag.value)))
+            if hasattr(osm, "nds"):
+                for nd in osm.nds:
+                    writer.write(etree.Element("nd", ref=str(nd)))
+            if hasattr(osm, "members"):
+                for member in osm.members:
+                    writer.write(
+                        etree.Element(
+                            "member",
+                            ref=str(member.ref),
+                            type=member.type,
+                            role=member.role,
+                        )
+                    )
+            writer.flush()
+    except AttributeError:
+        raise RuntimeError(f"OSM Object {osm} is malformed.")

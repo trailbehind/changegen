@@ -1,0 +1,6 @@
+sphinx
+sphinx-click
+furo
+autodoc
+click
+sphinxcontrib-apidoc
