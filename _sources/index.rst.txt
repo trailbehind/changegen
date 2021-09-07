@@ -50,6 +50,5 @@ Installation
    :caption: Contents:
 
    quickstart
-   cli
    postgis
    source/changegen
