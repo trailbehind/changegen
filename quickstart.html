@@ -212,10 +212,50 @@
 <li><p>you have a PostGIS database running on your local computer, or accessible via a network.</p></li>
 <li><p>you have an OSM extract</p></li>
 <li><p>you have <a class="reference external" href="https://wiki.openstreetmap.org/wiki/Osmosis">osmosis</a> installed</p></li>
+<li><p>you have <a class="reference external" href="https://imposm.org/docs/imposm3/latest/">imposm3</a> installed</p></li>
 </ul>
-<section id="database-setup">
-<h3>Database Setup<a class="headerlink" href="#database-setup" title="Permalink to this headline">¶</a></h3>
-<p>Refer to <a class="reference internal" href="postgis.html"><span class="doc">PostGIS Tips + Considerations</span></a> for details here.</p>
+<section id="database-setup-access">
+<h3>Database Setup + Access<a class="headerlink" href="#database-setup-access" title="Permalink to this headline">¶</a></h3>
+<p>To be sure that the PostGIS database used to support changegen operations is setup well, refer to <a class="reference internal" href="postgis.html"><span class="doc">PostGIS Tips + Considerations</span></a> for details.</p>
+<p>After the database is setup, we need to provide <code class="docutils literal notranslate"><span class="pre">changegen</span></code> with details on how to connect to this database. By default, <code class="docutils literal notranslate"><span class="pre">changegen</span></code> attempts to connect to a PostGIS database using the following parameters:</p>
+<div class="table-wrapper"><table class="docutils align-default">
+<colgroup>
+<col style="width: 27%"/>
+<col style="width: 35%"/>
+<col style="width: 38%"/>
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Parameter</strong></p></td>
+<td><p><strong>Default Value</strong></p></td>
+<td><p><strong>Environment Var</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>DB Name</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">conflate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PGDATABASE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Port</p></td>
+<td><p>15432</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PGPORT</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>User</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">postgres</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PGUSER</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Password</p></td>
+<td><p>no password</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PGPASS</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Host</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">localhost</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PGHOST</span></code></p></td>
+</tr>
+</tbody>
+</table></div>
+<p>To provide alternate access credentials, you may either provide them explicitly on the command line or by setting environment variables, as above. See <code class="docutils literal notranslate"><span class="pre">changegen</span> <span class="pre">--help</span></code> for details on how to provide credentials on the command line.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The following examples of CLI use assume that there’s a PostGIS database running on the same system, using the default connection parameters listed above.</p>
+</div>
 </section>
 </section>
 <section id="using-the-changegen-cli">
@@ -247,15 +287,39 @@
 <p><strong>Creating properly noded intersections with other OSM objects</strong></p>
 <p>If <code class="docutils literal notranslate"><span class="pre">new_features</span></code> is a set of linestrings that potentially may intersect with <strong>other OSM objects</strong>, we take a slightly different approach. First, we need to be sure we have an <code class="docutils literal notranslate"><span class="pre">imposm</span></code>-derived PostGIS table that contains any of the geometries that may intersect with any of the features in <code class="docutils literal notranslate"><span class="pre">new_features</span></code>. It’s important that <strong>this table also have a GIST geometry index</strong>.</p>
 <p>For this example, let’s assume we have <code class="docutils literal notranslate"><span class="pre">new_features</span></code> and another table of existing OSM objects known as <code class="docutils literal notranslate"><span class="pre">existing_features</span></code>. We can ensure that all intersections between features in <code class="docutils literal notranslate"><span class="pre">new_features</span></code> and features in <code class="docutils literal notranslate"><span class="pre">existing_features</span></code> have proper junction nodes by using the <code class="docutils literal notranslate"><span class="pre">-e/--existing</span></code> flag, e.g. the following command:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>changegen --suffix new_features --self --existing existing_features --self -outdir . --osmsrc data.osm.pbf
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>changegen --suffix new_features --self --existing existing_features -outdir . --osmsrc data.osm.pbf
 </pre></div>
 </div>
+<p><strong>Using an OSM ID offset</strong></p>
+<p>When adding new features to an OSM planet file, it is important that those new features are assigned IDs that do not collide with existing features in the planet file. Changegen provides support for this by providing an <code class="docutils literal notranslate"><span class="pre">--id_offset</span></code> flag. Passing this flag and an integer value (e.g. <code class="docutils literal notranslate"><span class="pre">--id_offset</span> <span class="pre">500</span></code>) will assign OSM ID values to new features starting with the value 500. It is up to the user to provide an ID offset that will not collide with existing features. If <code class="docutils literal notranslate"><span class="pre">osmium</span></code> is installed, the <code class="docutils literal notranslate"><span class="pre">--no_collisions</span></code> flag will stop execution if any IDs will be assigned to a new feature that would collide with an existing ID.</p>
 </section>
 <section id="modifying-existing-features-in-the-osm-file">
 <h3>Modifying existing features in the OSM file<a class="headerlink" href="#modifying-existing-features-in-the-osm-file" title="Permalink to this headline">¶</a></h3>
+<p>Changegen also supports modifying the <strong>metadata</strong> of existing OSM features. <strong>Note</strong> that this feature explicitly does not support modifying geometries. (The case of modifying geometries is supported by a combination of adding and removing features.)</p>
+<p>Changegen supports metadata modification via the <code class="docutils literal notranslate"><span class="pre">--modify_meta</span></code> flag. If this flag is provided, any tables that are selected via the <code class="docutils literal notranslate"><span class="pre">--suffix</span></code> flag will be treated as tables that contain existing OSM features to be modified. The resulting changefile will contain <code class="docutils literal notranslate"><span class="pre">&lt;modify&gt;</span></code> tags for each of these features. The Tags for each of these features will mirror the database fields present in the tables (and, optionally, any <code class="docutils literal notranslate"><span class="pre">hstore</span></code> columns – see <a class="reference internal" href="#maintaining-all-tags-with-hstore-columns">Maintaining all Tags with Hstore columns</a> below), and the geometries will be identical to their original representation in the OSM planet file from which they were imported. This method explicitly maintains node order for Ways, and ensures that all modified Ways contain the exact same node references as their original objects (e.g. to maintain original routable junctions in the OSM file).</p>
+<p>For example, if <code class="docutils literal notranslate"><span class="pre">modified_features</span></code> is a table of existing OSM features whose metadata have been modified, we can create a changefile expressing these modifications to these existing features like so:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>changegen --suffix modified_features --modify_meta -outdir . --osmsrc data.osm.pbf
+</pre></div>
+</div>
 </section>
 <section id="removing-existing-features-in-the-osm-file">
 <h3>Removing existing features in the OSM file<a class="headerlink" href="#removing-existing-features-in-the-osm-file" title="Permalink to this headline">¶</a></h3>
+<p>The third mode that changegen provides is a deletion mode. This mode can be used in conjunction with either the creation (e.g. the default mode) or the metadata modification mode. To delete OSM features (e.g. if they are being replaced with new features), create a table of the original OSM IDs of these objects to be deleted. This table must contain a column named <code class="docutils literal notranslate"><span class="pre">osm_id</span></code>. Provide the name of this table to <code class="docutils literal notranslate"><span class="pre">changegen</span></code> using the <code class="docutils literal notranslate"><span class="pre">--deletions</span></code> flag, e.g. <code class="docutils literal notranslate"><span class="pre">--deletions</span> <span class="pre">table_of_objects_to_delete</span></code>. Any ID listed in this table will be represented by a <cite>&lt;delete&gt;</cite> node in the resulting changefile. The <code class="docutils literal notranslate"><span class="pre">--deletions</span></code> flag can be provided multiple times.</p>
+</section>
+</section>
+<section id="other-features">
+<h2>Other Features<a class="headerlink" href="#other-features" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Changegen</span></code> provides a few more features that can help to support common use-cases of this tool.</p>
+<section id="maintaining-all-tags-with-hstore-columns">
+<h3>Maintaining all Tags with Hstore columns<a class="headerlink" href="#maintaining-all-tags-with-hstore-columns" title="Permalink to this headline">¶</a></h3>
+<p>Most often, <code class="docutils literal notranslate"><span class="pre">changegen</span></code> is used in conjunction with a set of PostGIS tables that have been at least in part created by <code class="docutils literal notranslate"><span class="pre">imposm</span></code>. In many pipelines that involve <code class="docutils literal notranslate"><span class="pre">changegen</span></code>, especially (but not exclusively) those that modify existing features, a certain subset of OSM feature tags are imported using the <code class="docutils literal notranslate"><span class="pre">imposm</span></code> mapping YAML files. These tags (represented in the database as columns) are then used to complete whatever conflation needs to happen.</p>
+<p>Often, however, these features contain many other tags that aren’t explicitly imported into the database via imposm. This is relevant to data processing steps after <code class="docutils literal notranslate"><span class="pre">changegen</span></code>. By default, <code class="docutils literal notranslate"><span class="pre">changegen</span></code> only writes as OSM tags database columns that are present in the source table. For example, when modifying an existing OSM feature, if the database table containing the modified feature only contains <code class="docutils literal notranslate"><span class="pre">name</span></code> an <code class="docutils literal notranslate"><span class="pre">highway</span></code> columns, the resulting changefile will only contain <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">highway</span></code> tags, which means that those features will only contain those tags in the OSM Planet file resulting from applying that changefile to another OSM planet file.</p>
+<p>This is usually not desirable, because we sometimes can’t know what tags will be necessary for later processing steps. Both <code class="docutils literal notranslate"><span class="pre">imposm</span></code> and <code class="docutils literal notranslate"><span class="pre">changegen</span></code> offer support for this situation. You can use the <code class="docutils literal notranslate"><span class="pre">hstore_tags</span></code> option in imposm (<a class="reference external" href="https://imposm.org/docs/imposm3/latest/mapping.html#hstore-tags">docs</a>) to add a column in the database that contains an hstore object with all tags. By default the only tags included in the hstore are ones that have been explicitly mentioned in the mapping.yaml file. To import all tags known for a feature, you’ll need to use the <code class="docutils literal notranslate"><span class="pre">load_all</span></code> directive (<a class="reference external" href="https://imposm.org/docs/imposm3/latest/mapping.html#tags">docs</a>).</p>
+<p>Once you’ve imported all tags, you can specify that <code class="docutils literal notranslate"><span class="pre">changegen</span></code> looks for an hstore column and writes all key:value pairs in the hstore column as Tag objects on every feature. Use the <code class="docutils literal notranslate"><span class="pre">--hstore_tags</span></code> option to specify the name of the column to obtain tags from. Note that if multiple tables are specified (e.g. multiple tables with new or modified features) they all must contain hstore columns with the same name. In the case where tag names are duplicated between the hstore and the database table columns, column key values will take precedence over values in the hstore.</p>
+</section>
+<section id="compressed-changefiles">
+<h3>Compressed changefiles<a class="headerlink" href="#compressed-changefiles" title="Permalink to this headline">¶</a></h3>
+<p>The OSMChange format is an XML-based structured format that specifies changes to be made to an OSM Planet file. Most readers of this format support compression, so we provide a <code class="docutils literal notranslate"><span class="pre">--compress</span></code> flag that enables changegen to output gzipped changefiles.</p>
 </section>
 </section>
 </section>
@@ -310,13 +374,18 @@
             <ul>
 <li><a class="reference internal" href="#">Quickstart / Usage Guide</a><ul>
 <li><a class="reference internal" href="#setup-installation">Setup + Installation</a><ul>
-<li><a class="reference internal" href="#database-setup">Database Setup</a></li>
+<li><a class="reference internal" href="#database-setup-access">Database Setup + Access</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#using-the-changegen-cli">Using the Changegen CLI</a><ul>
 <li><a class="reference internal" href="#adding-new-features-to-osm-file">Adding new features to OSM file</a></li>
 <li><a class="reference internal" href="#modifying-existing-features-in-the-osm-file">Modifying existing features in the OSM file</a></li>
 <li><a class="reference internal" href="#removing-existing-features-in-the-osm-file">Removing existing features in the OSM file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#other-features">Other Features</a><ul>
+<li><a class="reference internal" href="#maintaining-all-tags-with-hstore-columns">Maintaining all Tags with Hstore columns</a></li>
+<li><a class="reference internal" href="#compressed-changefiles">Compressed changefiles</a></li>
 </ul>
 </li>
 </ul>

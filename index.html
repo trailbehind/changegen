@@ -204,7 +204,7 @@
 <section id="things-changegen-can-do">
 <h2>Things <code class="docutils literal notranslate"><span class="pre">changegen</span></code> can do:<a class="headerlink" href="#things-changegen-can-do" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Translate from PostGIS <code class="docutils literal notranslate"><span class="pre">GEOMETRY</span></code> to OpenStreetMap XML formats (<code class="docutils literal notranslate"><span class="pre">Ways</span></code>, <code class="docutils literal notranslate"><span class="pre">Nodes</span></code>, <code class="docutils literal notranslate"><span class="pre">Relations</span></code>). (<strong>NB</strong>: Only <code class="docutils literal notranslate"><span class="pre">Polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">Point</span></code> and <code class="docutils literal notranslate"><span class="pre">LineString</span></code> data types are currently supported).</p></li>
+<li><p>Translate from PostGIS <code class="docutils literal notranslate"><span class="pre">GEOMETRY</span></code> to OpenStreetMap XML formats (<code class="docutils literal notranslate"><span class="pre">Ways</span></code>, <code class="docutils literal notranslate"><span class="pre">Nodes</span></code>). (<strong>NB</strong>: Only <code class="docutils literal notranslate"><span class="pre">Polygon</span></code>, <code class="docutils literal notranslate"><span class="pre">Point</span></code> and <code class="docutils literal notranslate"><span class="pre">LineString</span></code> data types are currently supported).</p></li>
 <li><p><strong>Create</strong> new <code class="docutils literal notranslate"><span class="pre">Polygons</span></code> (e.g. closed <code class="docutils literal notranslate"><span class="pre">Ways</span></code> or <code class="docutils literal notranslate"><span class="pre">Relations</span></code>) or <code class="docutils literal notranslate"><span class="pre">LineStrings</span></code> (<code class="docutils literal notranslate"><span class="pre">Ways</span></code> and <code class="docutils literal notranslate"><span class="pre">Nodes</span></code>) from objects in PostGIS tables, with corresponding schema as OSM tags</p></li>
 <li><p><strong>Ensure</strong> that new Ways are properly “network-noded” : e.g. that they share nodes at intersections with both <em>existing</em> and <em>new</em> geometries. This is important for e.g. ensuring accurate network topology. This also includes modifying <em>existing</em> <code class="docutils literal notranslate"><span class="pre">Ways</span></code> to include these noded intersections. (<strong>NB</strong>: Intersections with <code class="docutils literal notranslate"><span class="pre">Polygon</span></code> objects is not currently supported.)</p></li>
 <li><p><strong>Modify</strong> the metadata of <code class="docutils literal notranslate"><span class="pre">Ways</span></code> in an existing OSM extract.</p></li>
@@ -231,6 +231,7 @@ pip install -e changegen
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart / Usage Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#setup-installation">Setup + Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#using-the-changegen-cli">Using the Changegen CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#other-features">Other Features</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Full Command Line API</a></li>
@@ -243,14 +244,6 @@ pip install -e changegen
 </ul>
 </div>
 </section>
-</section>
-<section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
-</ul>
 </section>
 
       </article>
@@ -297,7 +290,6 @@ pip install -e changegen
 <li><a class="reference internal" href="#installation">Installation</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
           </div>
