@@ -1,6 +1,6 @@
 # OSM Changefile Generator (`changegen`)
 
-[**Documentaton**](https://trailbehind.github.io/changegen)
+[**Documentation**](https://trailbehind.github.io/changegen)
 
 Changegen is a command-line application for generating OpenStreeMap [changefiles](https://wiki.openstreetmap.org/wiki/OsmChange) from database tables and their source extract. This software is designed to support PostGIS/Imposm-based workflows for conflation of third-party data with OSM. The resulting changefiles can be used post-conflation to enable the updating of the source Planet file (or any other extract) with newly-conflated data via software such as [Osmosis](https://wiki.openstreetmap.org/wiki/Osmosis).
 
