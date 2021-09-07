@@ -12,7 +12,7 @@ Many workflows based on OpenStreetMap data use PostGIS to enable spatial operati
 
 Things ``changegen`` can do:
 ---------------------------------------------------------------
-* Translate from PostGIS ``GEOMETRY`` to OpenStreetMap XML formats (``Ways``, ``Nodes``). (**NB**: Only ``Polygon``, ``Point`` and ``LineString`` data types are currently supported).
+* Translate from PostGIS ``GEOMETRY`` to OpenStreetMap XML formats (``Ways``, ``Nodes``, ``Relations``). (**NB**: Only ``Polygon``, ``Point`` and ``LineString`` data types are currently supported).
 * **Create** new ``Polygons`` (e.g. closed ``Ways`` or ``Relations``) or ``LineStrings`` (``Ways`` and ``Nodes``) from objects in PostGIS tables, with corresponding schema as OSM tags
 * **Ensure** that new Ways are properly "network-noded" : e.g. that they share nodes at intersections with both *existing* and *new* geometries. This is important for e.g. ensuring accurate network topology. This also includes modifying *existing* ``Ways`` to include these noded intersections. (**NB**: Intersections with ``Polygon`` objects is not currently supported.)
 * **Modify** the metadata of ``Ways`` in an existing OSM extract.
