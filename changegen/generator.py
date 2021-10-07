@@ -582,178 +582,203 @@ def generate_changes(
         total=n_features,
         unit="feature",
     ):
-        # skip null geometries
-        if not feature.GetGeometryRef():
-            logging.debug(f"feature {feature.GetFID()} has no geometry")
-            continue
+        try:  # want to log but skip most feature-level exceptions
+            # skip null geometries
+            if not feature.GetGeometryRef():
+                logging.debug(f"feature {feature.GetFID()} has no geometry")
+                continue
 
-        # compute intersections + extract geometry + tags + reproject
-        feat_geom = wkt.loads(feature.GetGeometryRef().ExportToWkt())
-        feat_tags = _generate_tags_from_feature(
-            feature, layer_fields, hstore_column=hstore_column
-        )
-        wgs84_geom = transform(projection, feat_geom)
+            # compute intersections + extract geometry + tags + reproject
+            feat_geom = wkt.loads(feature.GetGeometryRef().ExportToWkt())
+            feat_tags = _generate_tags_from_feature(
+                feature, layer_fields, hstore_column=hstore_column
+            )
 
-        new_nodes = []
-        new_ways = []
-        new_relations = []
+            wgs84_geom = transform(projection, feat_geom)
+            # check for failed projection
+            try:
+                _x = wgs84_geom.x
+                _y = wgs84_geom.y
+            except IndexError as e:
+                logging.debug(
+                    f"feature {feature.GetFID()} failed to project to WGS84 [feat={feature.GetGeometryRef().ExportToWkt()[:30]}]"
+                )
+                continue
 
-        if isinstance(wgs84_geom, sg.MultiLineString) or isinstance(
-            wgs84_geom, sg.MultiPolygon
-        ):
-            raise NotImplementedError("Multi geometries not supported.")
-        if isinstance(wgs84_geom, sg.Point):
-            if modify_only:
-                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
+            new_nodes = []
+            new_ways = []
+            new_relations = []
 
-                new_nodes.append(
-                    Node(
-                        id=existing_id,
-                        version=2,
-                        lat=wgs84_geom.y,
-                        lon=wgs84_geom.x,
-                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+            if isinstance(wgs84_geom, sg.MultiLineString) or isinstance(
+                wgs84_geom, sg.MultiPolygon
+            ):
+                raise NotImplementedError("Multi geometries not supported.")
+            if isinstance(wgs84_geom, sg.Point):
+                if modify_only:
+                    existing_id = feature.GetFieldAsString(
+                        feature.GetFieldIndex("osm_id")
                     )
-                )
-            else:
-                new_nodes.append(
-                    Node(
-                        id=next(ids),
-                        version=1,
-                        lat=wgs84_geom.y,
-                        lon=wgs84_geom.x,
-                        tags=feat_tags,
+
+                    new_nodes.append(
+                        Node(
+                            id=existing_id,
+                            version=2,
+                            lat=wgs84_geom.y,
+                            lon=wgs84_geom.x,
+                            tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                        )
                     )
-                )
-
-        elif isinstance(wgs84_geom, sg.LineString):
-            ## NOTE that modify_only does not support modifying geometries.
-            if modify_only:
-                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
-
-                new_ways.append(
-                    Way(
-                        id=existing_id,
-                        version=2,
-                        nds=existing_nodes_for_ways[existing_id],
-                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                else:
+                    new_nodes.append(
+                        Node(
+                            id=next(ids),
+                            version=1,
+                            lat=wgs84_geom.y,
+                            lon=wgs84_geom.x,
+                            tags=feat_tags,
+                        )
                     )
-                )
-            else:  # not modifying, just creating
-                ways, nodes = _generate_ways_and_nodes(
-                    wgs84_geom,
-                    ids,
-                    feat_tags,
-                    intersection_db,
-                    max_nodes_per_way=max_nodes_per_way,
-                )
-                new_nodes.extend(nodes)
-                new_ways.extend(ways)
-                _global_node_id_all_ways.extend(
-                    chain.from_iterable([w.nds for w in ways])
-                )
-        elif isinstance(wgs84_geom, sg.Polygon):
-            ## If we're taking all features to be newly-created (~modify_only)
-            ## we need to create ways and nodes for that feature.
-            ## IF we're only modifying existing features with features
-            ## in the table, we just create a new Way with existing ID and nodes and new tags.
 
-            ## NOTE that modify_only does not support modifying geometries.
-            if modify_only:
-                existing_id = feature.GetFieldAsString(feature.GetFieldIndex("osm_id"))
-
-                new_ways.append(
-                    Way(
-                        id=existing_id,
-                        version=2,
-                        nds=existing_nodes_for_ways[existing_id],
-                        tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+            elif isinstance(wgs84_geom, sg.LineString):
+                ## NOTE that modify_only does not support modifying geometries.
+                if modify_only:
+                    existing_id = feature.GetFieldAsString(
+                        feature.GetFieldIndex("osm_id")
                     )
-                )
-            else:  # not modifying, just creating
-                # simple polygons can be treated like Ways.
-                if len(wgs84_geom.interiors) == 0:
+
+                    new_ways.append(
+                        Way(
+                            id=existing_id,
+                            version=2,
+                            nds=existing_nodes_for_ways[existing_id],
+                            tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                        )
+                    )
+                else:  # not modifying, just creating
                     ways, nodes = _generate_ways_and_nodes(
-                        wgs84_geom.exterior,
+                        wgs84_geom,
                         ids,
                         feat_tags,
                         intersection_db,
                         max_nodes_per_way=max_nodes_per_way,
-                        closed=True,
                     )
                     new_nodes.extend(nodes)
                     new_ways.extend(ways)
                     _global_node_id_all_ways.extend(
                         chain.from_iterable([w.nds for w in ways])
                     )
-                    # !! In some cases when the outer ring of the Polygon
-                    # is longer than max_nodes_per_way, we create a Relation
-                    # to represent that way.
-                    if len(ways) > 1:
-                        new_relations.append(
-                            _generate_relation_for_ways(
-                                ways, ids, ways[0].tags + [Tag("type", "multipolygon")]
-                            )
-                        )
-                else:  # more complex polygons (w/ holes) need to be Relations
-                    outer_ways, outer_nodes = _generate_ways_and_nodes(
-                        # no tags on these ways, they belong on the relation
-                        wgs84_geom.exterior,
-                        ids,
-                        [],
-                        intersection_db,
-                        max_nodes_per_way=max_nodes_per_way,
-                        closed=True,
+            elif isinstance(wgs84_geom, sg.Polygon):
+                ## If we're taking all features to be newly-created (~modify_only)
+                ## we need to create ways and nodes for that feature.
+                ## IF we're only modifying existing features with features
+                ## in the table, we just create a new Way with existing ID and nodes and new tags.
+
+                ## NOTE that modify_only does not support modifying geometries.
+                if modify_only:
+                    existing_id = feature.GetFieldAsString(
+                        feature.GetFieldIndex("osm_id")
                     )
-                    inner_ways, inner_nodes = [], []
-                    for hole in wgs84_geom.interiors:
-                        _ways, _nodes = _generate_ways_and_nodes(
-                            # no tags on any of these Ways
-                            hole,
+
+                    new_ways.append(
+                        Way(
+                            id=existing_id,
+                            version=2,
+                            nds=existing_nodes_for_ways[existing_id],
+                            tags=[tag for tag in feat_tags if tag.key != "osm_id"],
+                        )
+                    )
+                else:  # not modifying, just creating
+                    # simple polygons can be treated like Ways.
+                    if len(wgs84_geom.interiors) == 0:
+                        ways, nodes = _generate_ways_and_nodes(
+                            wgs84_geom.exterior,
+                            ids,
+                            feat_tags,
+                            intersection_db,
+                            max_nodes_per_way=max_nodes_per_way,
+                            closed=True,
+                        )
+                        new_nodes.extend(nodes)
+                        new_ways.extend(ways)
+                        _global_node_id_all_ways.extend(
+                            chain.from_iterable([w.nds for w in ways])
+                        )
+                        # !! In some cases when the outer ring of the Polygon
+                        # is longer than max_nodes_per_way, we create a Relation
+                        # to represent that way.
+                        if len(ways) > 1:
+                            new_relations.append(
+                                _generate_relation_for_ways(
+                                    ways,
+                                    ids,
+                                    ways[0].tags + [Tag("type", "multipolygon")],
+                                )
+                            )
+                    else:  # more complex polygons (w/ holes) need to be Relations
+                        outer_ways, outer_nodes = _generate_ways_and_nodes(
+                            # no tags on these ways, they belong on the relation
+                            wgs84_geom.exterior,
                             ids,
                             [],
                             intersection_db,
                             max_nodes_per_way=max_nodes_per_way,
                             closed=True,
                         )
-                        inner_ways.extend(_ways)
-                        inner_nodes.extend(_nodes)
-                    # Build relation
-                    members = [
-                        RelationMember(ref=w.id, type="way", role="outer")
-                        for w in outer_ways
-                    ]
-                    members.extend(
-                        [
-                            RelationMember(ref=w.id, type="way", role="inner")
-                            for w in inner_ways
+                        inner_ways, inner_nodes = [], []
+                        for hole in wgs84_geom.interiors:
+                            _ways, _nodes = _generate_ways_and_nodes(
+                                # no tags on any of these Ways
+                                hole,
+                                ids,
+                                [],
+                                intersection_db,
+                                max_nodes_per_way=max_nodes_per_way,
+                                closed=True,
+                            )
+                            inner_ways.extend(_ways)
+                            inner_nodes.extend(_nodes)
+                        # Build relation
+                        members = [
+                            RelationMember(ref=w.id, type="way", role="outer")
+                            for w in outer_ways
                         ]
-                    )
-                    # add 'multipolygon' tag (even though it's not.)
-                    # https://wiki.openstreetmap.org/wiki/Relation:multipolygon#One_outer_and_one_inner_ring
-                    feat_tags.append(Tag(key="type", value="multipolygon"))
-                    relation = Relation(
-                        id=next(ids),
-                        version="1",
-                        members=members,
-                        tags=feat_tags,  # original polygon tags on relation
-                    )
-                    new_ways.extend(outer_ways + inner_ways)
-                    new_nodes.extend(outer_nodes + inner_nodes)
-                    new_relations.append(relation)
+                        members.extend(
+                            [
+                                RelationMember(ref=w.id, type="way", role="inner")
+                                for w in inner_ways
+                            ]
+                        )
+                        # add 'multipolygon' tag (even though it's not.)
+                        # https://wiki.openstreetmap.org/wiki/Relation:multipolygon#One_outer_and_one_inner_ring
+                        feat_tags.append(Tag(key="type", value="multipolygon"))
+                        relation = Relation(
+                            id=next(ids),
+                            version="1",
+                            members=members,
+                            tags=feat_tags,  # original polygon tags on relation
+                        )
+                        new_ways.extend(outer_ways + inner_ways)
+                        new_nodes.extend(outer_nodes + inner_nodes)
+                        new_relations.append(relation)
 
-        else:
-            raise RuntimeError(f"{type(wgs84_geom)} is not LineString or Polygon")
-
-        ## Write new ways and nodes to file
-        if len(new_ways) > 0 or len(new_nodes) > 0:
-            if modify_only:
-                change_writer.add_modify(new_ways)
-                change_writer.add_modify(new_nodes)
             else:
-                change_writer.add_create(new_nodes + new_ways)
-        if len(new_relations) > 0:
-            change_writer.add_create(new_relations)
+                raise RuntimeError(f"{type(wgs84_geom)} is not LineString or Polygon")
+
+            ## Write new ways and nodes to file
+            if len(new_ways) > 0 or len(new_nodes) > 0:
+                if modify_only:
+                    change_writer.add_modify(new_ways)
+                    change_writer.add_modify(new_nodes)
+                else:
+                    change_writer.add_create(new_nodes + new_ways)
+            if len(new_relations) > 0:
+                change_writer.add_create(new_relations)
+
+        except Exception as e:
+            logging.warning(
+                f"Exception encountered processing a feature. [exception={repr(e)} fid={feature.GetFID()}]"
+            )
+            continue
 
     # Write all modified ways with intersections
     # Because we have to re-generate nodes for all points
