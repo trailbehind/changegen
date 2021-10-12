@@ -1,0 +1,6 @@
+FROM python:3.8-buster
+
+RUN apt-get -q update && \
+    apt-get -q -y install postgresql-client && \
+    apt-get -q update && \
+    apt-get clean
