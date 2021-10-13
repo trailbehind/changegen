@@ -595,15 +595,6 @@ def generate_changes(
             )
 
             wgs84_geom = transform(projection, feat_geom)
-            # check for failed projection
-            try:
-                _x = wgs84_geom.x
-                _y = wgs84_geom.y
-            except IndexError as e:
-                logging.debug(
-                    f"feature {feature.GetFID()} failed to project to WGS84 [feat={feature.GetGeometryRef().ExportToWkt()[:30]}]"
-                )
-                continue
 
             new_nodes = []
             new_ways = []
