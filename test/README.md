@@ -2,6 +2,16 @@
 
 The test suite for `changegen` requires a PostGIS database containing some test data to be running alongside the python tests. To enable this we use a `docker-compose` file to both run/populate the database and run the tests.
 
+## Running Tests
+
+**Via CodeShip**: these tests automatically run with every push. [Check status here.](https://app.codeship.com/projects/824fe25d-68b7-4dde-9ec9-638b52ae0859)
+
+**Locally**:
+
+1. `docker-compose build` (only need to run this once, unless you modify `test/Dockerfile-test` or `test/Dockerfile-db`)
+2. `docker-compose up`. This configures the db and runs the test suite.
+3. To re-run the tests, you must `docker-compose down` before running `docker-compose up` again.
+
 ## Testing Data Preparation
 
 There is a `pg_dump` (v.11) file containing the following tables in a region of Northeastern Washington state:
@@ -41,3 +51,5 @@ These tables were exported using `pg_dump` v.11:
 ```
 pg_dump -p XXX --user XXX --host XXX -d XXX -t new_points -t modified_points -t new_ways -t mod_ways -t original_ways -t deleted_ways -F custom -f dbdump.tar -n public
 ```
+
+It's important to be sure that you use `pg_dump` v.11 or less to ensure compatbility with the PostGIS database in the docker container.
