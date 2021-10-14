@@ -1,0 +1,23 @@
+test-db:
+  build:
+    image: test-db
+    dockerfile: ./test/Dockerfile-db
+  cached: true
+  environment:
+    - POSTGRES_HOST_AUTH_METHOD=trust
+
+test:
+  build:
+    image: test
+    dockerfile: ./test/Dockerfile-test
+  cached: True
+  volumes:
+    - ./:/opt/test/
+  depends_on:
+    - test-db
+  environment:
+    - PGNAME=conflate
+    - PGHOST=localhost
+    - PGPORT=5432
+    - PGUSER=postgres
+    - PGDATABASE=test
