@@ -2,4 +2,4 @@
   services:
     - test
   steps:
-    - command: '/bin/bash -c "cd /opt/test && make test"'
+    - command: '/bin/bash -c "cd /opt/test && make run-test"'
