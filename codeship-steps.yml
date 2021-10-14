@@ -1,0 +1,5 @@
+- type: serial
+  services:
+    - test
+  steps:
+    - command: '/bin/bash -c "cd /opt/test && make test"'
