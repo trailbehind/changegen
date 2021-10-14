@@ -22,4 +22,4 @@ services:
       PGPORT: 5432
       PGUSER: postgres
       PGDATABASE: test
-    command: /bin/bash -c "cd /opt/test && make import-db"
+    command: /bin/bash -c "cd /opt/test && make test"

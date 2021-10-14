@@ -1,6 +1,12 @@
-FROM python:3.8-buster
+FROM ubuntu:20.04
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -q update && \
-    apt-get -q -y install postgresql-client && \
+    apt-get -q -y install git curl  apt-transport-https build-essential unzip postgresql-client \
+        python3.7 wget python3-pip gdal-bin gdal-data libsqlite3-dev zlib1g-dev libprotobuf-dev \
+        libleveldb-dev libgeos-dev libpq-dev gcc libspatialindex-dev default-jre default-jdk\
+        cmake build-essential libboost-dev libexpat1-dev zlib1g-dev libbz2-dev osmium-tool && \
     apt-get -q update && \
-    apt-get clean
+    apt-get clean && \
+    pip3 install --no-cache-dir awscli boto3 psycopg2 && \
+    rm -rf /var/lib/apt/ /var/cache/apt/ /var/cache/debconf/
