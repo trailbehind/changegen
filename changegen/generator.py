@@ -328,7 +328,7 @@ def _modify_existing_way(way_geom, way_id, nodes, tags, intersection_db):
                 way_geom.buffer(0.01).bounds, objects=True
             )
         ]
-        if way_geom.intersects(sg.Point(n.lon, n.lat).buffer(0.0005))
+        if way_geom.intersects(sg.Point(n.lon, n.lat).buffer(0.0001))
     ]
 
     for n in add_nodes:
