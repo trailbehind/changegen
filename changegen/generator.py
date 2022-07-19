@@ -317,7 +317,7 @@ def _modify_existing_way(way_geom, way_id, nodes, tags, intersection_db):
     way_geom_pts = list(way_geom.coords)
     if len(way_geom_pts) > WAY_POINT_THRESHOLD:
         logging.warning(
-            f"There are {len(way_geom_pts)} in the linestring, which is greater than the threshold ({WAY_POINT_THRESHOLD})."
+            f"There are {len(way_geom_pts)} in the linestring (way_id: {way_id}), which is greater than the threshold ({WAY_POINT_THRESHOLD})."
         )
 
     add_nodes = [
@@ -328,7 +328,7 @@ def _modify_existing_way(way_geom, way_id, nodes, tags, intersection_db):
                 way_geom.buffer(0.01).bounds, objects=True
             )
         ]
-        if way_geom.intersects(sg.Point(n.lon, n.lat).buffer(0.0001))
+        if way_geom.intersects(sg.Point(n.lon, n.lat).buffer(0.00005))
     ]
 
     for n in add_nodes:
