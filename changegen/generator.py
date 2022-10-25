@@ -463,28 +463,28 @@ def _generate_ways_and_nodes(
         _tmp_ls = sg.LineString(ls_points)
         idx = _get_point_insertion_index(_tmp_ls, sg.Point(n.lon, n.lat))
         ip_x, ip_y = list(_tmp_ls.coords)[idx]
-        # there's a special case here where the intersection point already exists
-        # on geom (e.g. if two trails intersect exactly at the endpoint of geom)
-        #
-        # to maintain connectivity we need to replace that Node in Geom
-        # with n
+        # # there's a special case here where the intersection point already exists
+        # # on geom (e.g. if two trails intersect exactly at the endpoint of geom)
+        # #
+        # # to maintain connectivity we need to replace that Node in Geom
+        # # with n
 
-        if sg.Point(n.lon, n.lat).almost_equals(
-            sg.Point(ip_x, ip_y), COORDINATE_PRECISION
-        ):
-            try:
-                del nodes[idx]  # avoid duplicating existing Node n
-            except IndexError as e:
-                logging.warning(
-                    f"Out of bounds error in Node removal. Does the intersection db have duplicates? {len(add_nodes)} idx: {idx}, {len(nodes)}, {len(list(geom.coords))}"
-                )
+        # if sg.Point(n.lon, n.lat).almost_equals(
+        #     sg.Point(ip_x, ip_y), COORDINATE_PRECISION
+        # ):
+        #     try:
+        #         del nodes[idx]  # avoid duplicating existing Node n
+        #     except IndexError as e:
+        #         logging.warning(
+        #             f"Out of bounds error in Node removal. Does the intersection db have duplicates? {len(add_nodes)} idx: {idx}, {len(nodes)}, {len(list(geom.coords))}"
+        #         )
 
-            node_ids_for_way[idx] = n.id
+        #     node_ids_for_way[idx] = n.id
 
-        else:
-            # just add the node id to the Way, because it doesn't
-            # already exist in the linestring.
-            node_ids_for_way.insert(idx, n.id)
+        # else:
+        # # just add the node id to the Way, because it doesn't
+        # # already exist in the linestring.
+        node_ids_for_way.insert(idx, n.id)
 
     # If this is a long linestring we need to split it into many ways maybe
     ways = _make_ways(
