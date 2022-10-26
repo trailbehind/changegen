@@ -151,7 +151,7 @@ def _generate_intersection_db(layer, others, db, idgen, self=False):
                 node.lon - 0.001,
                 node.lat - 0.001,
                 node.lon + 0.001,
-                node.lat - 0.001,
+                node.lat + 0.001,
             ),  # left, bottom, right, top
             obj=node,
         )
@@ -435,8 +435,9 @@ def _generate_ways_and_nodes(
                     this_point.buffer(0.001).bounds, objects=True
                 )
             ]
-            if this_point.buffer(0.0001).intersects(sg.Point(n.lon, n.lat))
+            if sg.Point(n.lon, n.lat).within(this_point.buffer(0.0001))
         ]
+        print("POTENTNIAL INODERS:", potential_inodes)
         sorted_inodes = sorted(potential_inodes, key=lambda x: x[1])
 
         if len(potential_inodes) > 0:
