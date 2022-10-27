@@ -28,7 +28,7 @@ from .db import OGRDBReader
 
 WGS84 = pyproj.CRS("EPSG:4326")
 WEBMERC = pyproj.CRS("EPSG:3857")
-COORDINATE_PRECISION = 7
+COORDINATE_PRECISION = 6
 WAY_POINT_THRESHOLD = 1500
 
 
@@ -463,11 +463,11 @@ def _generate_ways_and_nodes(
         _tmp_ls = sg.LineString(ls_points)
         idx = _get_point_insertion_index(_tmp_ls, sg.Point(n.lon, n.lat))
         ip_x, ip_y = list(_tmp_ls.coords)[idx]
-        # # there's a special case here where the intersection point already exists
-        # # on geom (e.g. if two trails intersect exactly at the endpoint of geom)
-        # #
-        # # to maintain connectivity we need to replace that Node in Geom
-        # # with n
+        # there's a special case here where the intersection point already exists
+        # on geom (e.g. if two trails intersect exactly at the endpoint of geom)
+        #
+        # to maintain connectivity we need to replace that Node in Geom
+        # with n
 
         if sg.Point(n.lon, n.lat).almost_equals(
             sg.Point(ip_x, ip_y), COORDINATE_PRECISION
